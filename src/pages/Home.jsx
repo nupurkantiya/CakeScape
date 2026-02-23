@@ -1,5 +1,11 @@
-function Home() {
-  return <h1 style={{ padding: "40px" }}>Home Page</h1>;
-}
+import Hero from "../components/hero/Hero";
 
+function Home() {
+  return (
+    <>
+      <Hero />
+    </>
+  );
+}
+ 
 export default Home;
