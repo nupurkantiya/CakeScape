@@ -1,0 +1,49 @@
+:root {
+  /* ===============================
+     COLOR SYSTEM
+  =============================== */
+
+  --color-bg-primary: #0f0f14;
+  --color-bg-secondary: #181824;
+  --color-bg-elevated: #1f1f2e;
+
+  --color-neon-pink: #ff2e88;
+  --color-neon-purple: #9b5cff;
+  --color-neon-cyan: #00f0ff;
+
+  --color-text-primary: #e6e6f0;
+  --color-text-muted: #9aa0b5;
+
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
+
+  /* ===============================
+     TYPOGRAPHY
+  =============================== */
+
+  --font-primary: 'Inter', sans-serif;
+
+  --font-size-xl: 3rem;
+  --font-size-lg: 2rem;
+  --font-size-md: 1.25rem;
+  --font-size-sm: 0.95rem;
+
+  /* ===============================
+     SPACING SYSTEM
+  =============================== */
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 32px;
+  --spacing-xl: 64px;
+
+  /* ===============================
+     EFFECTS
+  =============================== */
+
+  --glow-pink: 0 0 10px rgba(255, 46, 136, 0.7);
+  --glow-cyan: 0 0 12px rgba(0, 240, 255, 0.6);
+
+  --transition-fast: 0.2s ease;
+  --transition-smooth: 0.4s ease;
+}
