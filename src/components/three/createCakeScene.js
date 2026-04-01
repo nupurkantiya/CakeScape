@@ -59,7 +59,71 @@ export function createCakeScene(container) {
   scene.add(cakeBase)
 
   // ===================
-  // 6. RENDER LOOP (runs every frame ~60fps)
+  // 6. FROSTING MESH (pink cylinder with custom shader)
+  // ===================
+  
+  // Geometry: slightly wider than base, sits on top
+  const frostingGeometry = new THREE.CylinderGeometry(1.25, 1.25, 1, 128)
+  
+  // Custom ShaderMaterial with melt effect
+  const frostingMaterial = new THREE.ShaderMaterial({
+    uniforms: {
+      melt: { value: 0 }  // 0 = no melt, 1 = fully melted
+    },
+    
+    // VERTEX SHADER: Manipulates vertex positions to create melt effect
+    vertexShader: `
+      uniform float melt;
+      varying vec2 vUv;
+
+      void main() {
+        vUv = uv;
+        vec3 pos = position;
+
+        // Height-based influence (top melts more than bottom)
+        float heightFactor = smoothstep(0.0, 1.0, pos.y);
+
+        // Smooth cubic easing for natural feel
+        float easedMelt = melt * melt * melt;
+        float meltAmount = easedMelt * heightFactor;
+
+        // Downward sag
+        pos.y -= meltAmount * 0.4;
+
+        // Outward spread (cake gets wider as it melts)
+        pos.x *= 1.0 + meltAmount * 0.15;
+        pos.z *= 1.0 + meltAmount * 0.15;
+
+        // Organic uneven drips using simple noise
+        float noise = sin(pos.x * 8.0) * sin(pos.z * 8.0);
+        pos.y -= meltAmount * noise * 0.08;
+
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+      }
+    `,
+    
+    // FRAGMENT SHADER: Sets the pixel color (pink frosting)
+    fragmentShader: `
+      varying vec2 vUv;
+
+      void main() {
+        vec3 frostingColor = vec3(1.0, 0.4, 0.7);  // Pink color
+        gl_FragColor = vec4(frostingColor, 1.0);
+      }
+    `
+  })
+  
+  // Create the frosting mesh
+  const frosting = new THREE.Mesh(frostingGeometry, frostingMaterial)
+  
+  // Position: above the cake base
+  frosting.position.set(0, 0.5, 0)
+  
+  // Add to scene
+  scene.add(frosting)
+
+  // ===================
+  // 7. RENDER LOOP (runs every frame ~60fps)
   // ===================
   let animationId  // Store ID so we can cancel later
 
@@ -78,7 +142,7 @@ export function createCakeScene(container) {
   animate()
 
   // ===================
-  // 8. CLEANUP FUNCTION (critical for React!)
+  // 9. CLEANUP FUNCTION (critical for React!)
   // ===================
   function dispose() {
     cancelAnimationFrame(animationId)           // Stop the animation loop
@@ -87,12 +151,16 @@ export function createCakeScene(container) {
     baseGeometry.dispose()
     baseMaterial.dispose()
     
+    // Dispose of frosting resources
+    frostingGeometry.dispose()
+    frostingMaterial.dispose()
+    
     renderer.dispose()                          // Free GPU memory
     container.removeChild(renderer.domElement)  // Remove canvas from DOM
   }
 
   // ===================
-  // 9. RETURN everything
+  // 10. RETURN everything
   // ===================
-  return { scene, camera, renderer, dispose }
+  return { scene, camera, renderer, frostingMaterial, dispose }
 }
