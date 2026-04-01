@@ -1,76 +1,92 @@
-import { useRef } from "react";
-import { useFrame } from "@react-three/fiber";
-import * as THREE from "three";
+import { useRef } from "react"
+import { useFrame, extend } from "@react-three/fiber"
+import { shaderMaterial } from "@react-three/drei"
+import * as THREE from "three"
 
-export default function CakeBase({ melt }) {
-  const frostingRef = useRef();
-  const originalPositions = useRef(null);
-  console.log("melt:", melt);
+// ✅ Custom Shader Material
+const FrostingMaterial = shaderMaterial(
+  {
+    melt: 0,
+  },
 
-useFrame((state) => {
-  if (!frostingRef.current) return;
+  // ✅ Vertex Shader (MUST be inside backticks)
+  `
+  uniform float melt;
+  varying vec2 vUv;
 
-  const geometry = frostingRef.current.geometry;
-  const position = geometry.attributes.position;
+  void main() {
+    vUv = uv;
 
-  if (!originalPositions.current) {
-    originalPositions.current = position.array.slice();
-  }
+    vec3 pos = position;
 
-  const time = state.clock.getElapsedTime();
+    // Height-based influence (top melts more)
+    float heightFactor = smoothstep(0.0, 1.0, pos.y);
 
-  for (let i = 0; i < position.count; i++) {
-    const ix = i * 3;
-    const iy = i * 3 + 1;
-    const iz = i * 3 + 2;
+    // Smooth cubic easing
+    float easedMelt = melt * melt * melt;
 
-    const originalX = originalPositions.current[ix];
-    const originalY = originalPositions.current[iy];
-    const originalZ = originalPositions.current[iz];
-
-    // Height factor (bottom melts more)
-    const heightFactor = (originalY + 0.35) / 0.7;
-
-    // Stronger melt amount
-    const meltStrength = melt * 3 * (1 - heightFactor);
+    float meltAmount = easedMelt * heightFactor;
 
     // Downward sag
-    position.array[iy] = originalY - meltStrength;
+    pos.y -= meltAmount * 0.4;
 
-    // Slight outward bulge while melting
-    const radial = Math.sqrt(originalX * originalX + originalZ * originalZ);
-    const bulge = melt * 0.3 * radial;
+    // Outward spread
+    pos.x *= 1.0 + meltAmount * 0.15;
+    pos.z *= 1.0 + meltAmount * 0.15;
 
-    position.array[ix] = originalX * (1 + bulge * 0.05);
-    position.array[iz] = originalZ * (1 + bulge * 0.05);
+    // Organic uneven drips
+    float noise = sin(pos.x * 8.0) * sin(pos.z * 8.0);
+    pos.y -= meltAmount * noise * 0.08;
 
-    // Extra wobble for realism
-    position.array[iy] +=
-      Math.sin(time * 4 + originalX * 5) * melt * 0.05;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
   }
+  `,
 
-  position.needsUpdate = true;
-  geometry.computeVertexNormals(); // THIS is critical
-});
+  // ✅ Fragment Shader
+  `
+  varying vec2 vUv;
 
+  void main() {
+    vec3 frostingColor = vec3(1.0, 0.4, 0.7);
+    gl_FragColor = vec4(frostingColor, 1.0);
+  }
+  `
+)
+
+// Required so JSX recognizes <frostingMaterial />
+extend({ FrostingMaterial })
+
+export function CakeBase({ scrollProgress }) {
+  const frostingRef = useRef()
+
+  useFrame(() => {
+    if (!frostingRef.current) return
+
+    const meltStart = 0.1
+    const meltEnd = 0.6
+
+    const raw =
+      (scrollProgress - meltStart) / (meltEnd - meltStart)
+
+    const clamped = Math.min(Math.max(raw, 0), 1)
+
+    frostingRef.current.material.uniforms.melt.value = clamped
+  })
 
   return (
     <group>
-      {/* Cake base */}
-      <mesh position={[0, 0, 0]}>
-        <cylinderGeometry args={[2, 2, 1.5, 32]} />
-        <meshStandardMaterial color="#6b3e26" />
+      {/* Cake Base */}
+      <mesh position={[0, -0.5, 0]}>
+        <cylinderGeometry args={[1.2, 1.2, 1, 64]} />
+        <meshStandardMaterial color="#5a1b0c" />
       </mesh>
 
       {/* Frosting */}
-      <mesh ref={frostingRef} position={[0, 1, 0]}>
-        <cylinderGeometry args={[2.1, 2.1, 0.7, 64, 32]} />
-        <meshStandardMaterial
-          color="#ff69b4"
-          roughness={0.3}
-          metalness={0.1}
-        />
+      <mesh position={[0, 0.5, 0]}>
+        <cylinderGeometry args={[1.25, 1.25, 1, 128]} />
+        <frostingMaterial ref={frostingRef} />
       </mesh>
     </group>
-  );
+  )
 }
+

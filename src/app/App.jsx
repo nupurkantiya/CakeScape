@@ -1,7 +1,5 @@
-import AppRoutes from "./routes";
+import Hero from "../components/hero/Hero"
 
-function App() {
-  return <AppRoutes />;
+export default function App() {
+  return <Hero />
 }
-
-export default App;
