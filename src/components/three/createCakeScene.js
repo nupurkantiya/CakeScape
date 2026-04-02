@@ -63,7 +63,8 @@ export function createCakeScene(container) {
   // ===================
   
   // Geometry: slightly wider than base, sits on top
-  const frostingGeometry = new THREE.CylinderGeometry(1.25, 1.25, 1, 128)
+  // Using more height segments for smoother dripping effect
+  const frostingGeometry = new THREE.CylinderGeometry(1.25, 1.25, 0.5, 64, 16)
   
   // Custom ShaderMaterial with melt effect
   const frostingMaterial = new THREE.ShaderMaterial({
@@ -80,26 +81,28 @@ export function createCakeScene(container) {
         vUv = uv;
         vec3 pos = position;
 
-        // CylinderGeometry y ranges from -0.5 to +0.5 (height=1)
+        // CylinderGeometry y ranges from -0.25 to +0.25 (height=0.5)
         // Normalize to 0-1 for height-based effects
-        float normalizedY = pos.y + 0.5;
+        float normalizedY = (pos.y + 0.25) / 0.5;  // 0 = bottom, 1 = top
         
-        // Top vertices melt more than bottom
-        float heightFactor = normalizedY;
+        // Bottom drips more, top stays mostly in place
+        float heightFactor = 1.0 - normalizedY;  // 1 = bottom, 0 = top
+        
+        // Smooth the effect with easing
+        float easedMelt = melt * melt;  // Quadratic easing
+        float meltAmount = easedMelt * heightFactor;
 
-        // Calculate melt amount
-        float meltAmount = melt * heightFactor;
-
-        // Downward sag
-        pos.y -= meltAmount * 0.5;
-
-        // Outward spread (frosting gets wider)
-        float spread = 1.0 + meltAmount * 0.3;
+        // The key fix: drip DOWN more than spreading OUT
+        // Drip down significantly
+        pos.y -= meltAmount * 1.2;
+        
+        // Only spread outward slightly (to hug the cake sides)
+        float spread = 1.0 + meltAmount * 0.08;
         pos.x *= spread;
         pos.z *= spread;
 
-        // Organic drips using noise
-        float noise = sin(pos.x * 10.0) * sin(pos.z * 10.0);
+        // Organic drips using noise (uneven dripping)
+        float noise = sin(pos.x * 12.0) * sin(pos.z * 12.0);
         pos.y -= meltAmount * noise * 0.15;
 
         gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
@@ -120,8 +123,10 @@ export function createCakeScene(container) {
   // Create the frosting mesh
   const frosting = new THREE.Mesh(frostingGeometry, frostingMaterial)
   
-  // Position: above the cake base
-  frosting.position.set(0, 0.5, 0)
+  // Position: on top of the cake base
+  // Cake base: y = -0.5, height = 1, so top is at y = 0
+  // Frosting: height = 0.5, so center should be at y = 0.25
+  frosting.position.set(0, 0.25, 0)
   
   // Add to scene
   scene.add(frosting)
