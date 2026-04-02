@@ -1,8 +1,24 @@
+import { useEffect, useState } from "react";
 import { useCakeScene } from "../../hooks/useCakeScene";
 
 function Hero() {
-  // Initialize Three.js scene and get the container ref
-  const containerRef = useCakeScene();
+  // Track scroll progress (0 = top, 1 = scrolled one viewport height)
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  useEffect(() => {
+    function handleScroll() {
+      const scrollTop = window.scrollY;
+      const maxScroll = window.innerHeight;  // One full viewport height
+      const progress = Math.min(scrollTop / maxScroll, 1);
+      setScrollProgress(progress);
+    }
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Initialize Three.js scene with scroll progress
+  const containerRef = useCakeScene(scrollProgress);
 
   return (
     <section className="hero">

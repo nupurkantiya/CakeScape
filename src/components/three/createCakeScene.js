@@ -80,23 +80,27 @@ export function createCakeScene(container) {
         vUv = uv;
         vec3 pos = position;
 
-        // Height-based influence (top melts more than bottom)
-        float heightFactor = smoothstep(0.0, 1.0, pos.y);
+        // CylinderGeometry y ranges from -0.5 to +0.5 (height=1)
+        // Normalize to 0-1 for height-based effects
+        float normalizedY = pos.y + 0.5;
+        
+        // Top vertices melt more than bottom
+        float heightFactor = normalizedY;
 
-        // Smooth cubic easing for natural feel
-        float easedMelt = melt * melt * melt;
-        float meltAmount = easedMelt * heightFactor;
+        // Calculate melt amount
+        float meltAmount = melt * heightFactor;
 
         // Downward sag
-        pos.y -= meltAmount * 0.4;
+        pos.y -= meltAmount * 0.5;
 
-        // Outward spread (cake gets wider as it melts)
-        pos.x *= 1.0 + meltAmount * 0.15;
-        pos.z *= 1.0 + meltAmount * 0.15;
+        // Outward spread (frosting gets wider)
+        float spread = 1.0 + meltAmount * 0.3;
+        pos.x *= spread;
+        pos.z *= spread;
 
-        // Organic uneven drips using simple noise
-        float noise = sin(pos.x * 8.0) * sin(pos.z * 8.0);
-        pos.y -= meltAmount * noise * 0.08;
+        // Organic drips using noise
+        float noise = sin(pos.x * 10.0) * sin(pos.z * 10.0);
+        pos.y -= meltAmount * noise * 0.15;
 
         gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
       }
