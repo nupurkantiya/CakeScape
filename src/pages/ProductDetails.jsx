@@ -1,10 +1,18 @@
+import { useState } from "react"
 import { useParams, Link } from "react-router-dom"
 import { getProductById } from "../data/products"
+import { useCart } from "../context/CartContext"
 
 function ProductDetails() {
   // Get product ID from URL params
   const { id } = useParams()
   const product = getProductById(id)
+  
+  // Get addItem function from cart context
+  const { addItem } = useCart()
+  
+  // State for "Added!" feedback
+  const [added, setAdded] = useState(false)
 
   // Handle product not found
   if (!product) {
@@ -20,6 +28,15 @@ function ProductDetails() {
   }
 
   const { name, description, price, category, flavors, layers, bestseller } = product
+  
+  // Handle add to cart click
+  const handleAddToCart = () => {
+    addItem(product)
+    setAdded(true)
+    
+    // Reset "Added!" text after 2 seconds
+    setTimeout(() => setAdded(false), 2000)
+  }
 
   return (
     <div className="product-details-page">
@@ -53,8 +70,11 @@ function ProductDetails() {
           {/* Price and Add to Cart */}
           <div className="product-details-footer">
             <span className="product-details-price">${price.toFixed(2)}</span>
-            <button className="add-to-cart-btn">
-              Add to Cart
+            <button 
+              className={`add-to-cart-btn ${added ? "added" : ""}`}
+              onClick={handleAddToCart}
+            >
+              {added ? "Added!" : "Add to Cart"}
             </button>
           </div>
         </div>
