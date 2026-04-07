@@ -209,3 +209,48 @@
   0%,100% { transform: translateY(0px); }
   50% { transform: translateY(40px); }
 }
+
+/* =======================
+   LANDING EXPERIENCE
+   ======================= */
+
+/* Fixed canvas that covers entire viewport */
+.landing-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 1;
+}
+
+/* Scroll spacer - creates room to scroll */
+.landing-scroll-spacer {
+  height: 600vh; /* 6 viewports of scroll room */
+  pointer-events: none;
+}
+
+/* Scroll hint at bottom */
+.landing-scroll-hint {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.scroll-arrow {
+  margin-top: 10px;
+  font-size: 1.5rem;
+  animation: bounceArrow 1.5s ease-in-out infinite;
+}
+
+@keyframes bounceArrow {
+  0%, 100% { transform: translateY(0); opacity: 0.6; }
+  50% { transform: translateY(10px); opacity: 1; }
+}
