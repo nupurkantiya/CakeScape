@@ -17,6 +17,7 @@ function CanvasRoot() {
       scene: rendererCore.scene,
       camera: rendererCore.camera,
       renderer: rendererCore.renderer,
+      engine: rendererCore,
     })
 
     const sceneDefinitions = createScenes()

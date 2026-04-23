@@ -1,11 +1,14 @@
 import * as THREE from "three"
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js"
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js"
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js"
 
 export class Renderer {
   constructor(container, options = {}) {
     this.container = container
 
     this.scene = new THREE.Scene()
-    this.scene.background = new THREE.Color(options.background ?? 0x05060b)
+    this.scene.background = new THREE.Color(options.background ?? 0x000000)
 
     this.camera = new THREE.PerspectiveCamera(
       options.fov ?? 45,
@@ -26,8 +29,19 @@ export class Renderer {
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping
     this.renderer.toneMappingExposure = 1
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.maxPixelRatio))
+    this.renderer.setSize(1, 1, false)
 
     container.appendChild(this.renderer.domElement)
+
+    const bloomStrength = options.bloomStrength ?? 1.15
+    const bloomRadius = options.bloomRadius ?? 0.42
+    const bloomThreshold = options.bloomThreshold ?? 0.18
+
+    this.composer = new EffectComposer(this.renderer)
+    this.renderPass = new RenderPass(this.scene, this.camera)
+    this.bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), bloomStrength, bloomRadius, bloomThreshold)
+    this.composer.addPass(this.renderPass)
+    this.composer.addPass(this.bloomPass)
 
     this.baseCameraPosition = this.camera.position.clone()
     this.cameraTarget = new THREE.Vector3(0, 0, 0)
@@ -66,6 +80,8 @@ export class Renderer {
 
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, this.maxPixelRatio))
     this.renderer.setSize(width, height, false)
+    this.composer.setSize(width, height)
+    this.bloomPass.resolution.set(width, height)
   }
 
   updateIdleCameraMotion(elapsed) {
@@ -95,7 +111,7 @@ export class Renderer {
       }
 
       this.updateIdleCameraMotion(elapsed)
-      this.renderer.render(this.scene, this.camera)
+      this.composer.render()
 
       this.rafId = requestAnimationFrame(frame)
     }
@@ -123,6 +139,7 @@ export class Renderer {
     }
 
     this.renderer.dispose()
+    this.composer.dispose()
 
     if (this.renderer.domElement.parentNode === this.container) {
       this.container.removeChild(this.renderer.domElement)

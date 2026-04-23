@@ -1,5 +1,6 @@
 import * as THREE from "three"
 import { createIntroScene } from "./IntroScene"
+import { createVoidScene } from "./VoidScene"
 import { createProductScene } from "./ProductScene"
 
 function createEnvironmentScene() {
@@ -40,14 +41,16 @@ function createEnvironmentScene() {
       if (!ambient || !key || !fill || !haze || !hazeMaterial) return
 
       const elapsed = frame.elapsed ?? 0
+      const globalProgress = frame.globalProgress ?? progress
+      const visibility = THREE.MathUtils.smoothstep(globalProgress, 0.1, 0.16)
       const lightPulse = Math.sin(elapsed * 0.35) * 0.08
 
-      ambient.intensity = 0.24 + lightPulse
-      key.intensity = 1.2 + lightPulse * 0.8
-      fill.intensity = 0.38 + Math.cos(elapsed * 0.4) * 0.06
+      ambient.intensity = (0.24 + lightPulse) * visibility
+      key.intensity = (1.2 + lightPulse * 0.8) * visibility
+      fill.intensity = (0.38 + Math.cos(elapsed * 0.4) * 0.06) * visibility
 
       haze.rotation.y = elapsed * 0.01
-      hazeMaterial.opacity = 0.14 + (1 - progress) * 0.08
+      hazeMaterial.opacity = (0.14 + (1 - progress) * 0.08) * visibility
     },
 
     dispose() {
@@ -83,7 +86,11 @@ export function createScenes() {
     },
     {
       scene: createIntroScene(),
-      range: { start: 0, end: 0.45 },
+      range: { start: 0, end: 0.1 },
+    },
+    {
+      scene: createVoidScene(),
+      range: { start: 0.1, end: 0.25 },
     },
     {
       scene: createProductScene(),
