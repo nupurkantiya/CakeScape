@@ -2,6 +2,7 @@ import * as THREE from "three"
 import { createIntroScene } from "./IntroScene"
 import { createVoidScene } from "./VoidScene"
 import { createBirthScene } from "./BirthScene"
+import { createRiseScene } from "./RiseScene"
 import { createProductScene } from "./ProductScene"
 
 function createEnvironmentScene() {
@@ -98,8 +99,12 @@ export function createScenes() {
       range: { start: 0.25, end: 0.45 },
     },
     {
+      scene: createRiseScene(),
+      range: { start: 0.45, end: 0.65 },
+    },
+    {
       scene: createProductScene(),
-      range: { start: 0.45, end: 1 },
+      range: { start: 0.65, end: 1 },
     },
   ]
 }
