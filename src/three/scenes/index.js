@@ -4,6 +4,7 @@ import { createVoidScene } from "./VoidScene"
 import { createBirthScene } from "./BirthScene"
 import { createRiseScene } from "./RiseScene"
 import { createPourScene } from "./PourScene"
+import { createRevealScene } from "./RevealScene"
 import { createProductScene } from "./ProductScene"
 
 function createEnvironmentScene() {
@@ -108,8 +109,12 @@ export function createScenes() {
       range: { start: 0.65, end: 0.8 },
     },
     {
+      scene: createRevealScene(),
+      range: { start: 0.8, end: 0.92 },
+    },
+    {
       scene: createProductScene(),
-      range: { start: 0.8, end: 1 },
+      range: { start: 0.92, end: 1 },
     },
   ]
 }

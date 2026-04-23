@@ -2,6 +2,7 @@ import * as THREE from "three"
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js"
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js"
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js"
+import { BokehPass } from "three/examples/jsm/postprocessing/BokehPass.js"
 
 export class Renderer {
   constructor(container, options = {}) {
@@ -36,12 +37,36 @@ export class Renderer {
     const bloomStrength = options.bloomStrength ?? 1.15
     const bloomRadius = options.bloomRadius ?? 0.42
     const bloomThreshold = options.bloomThreshold ?? 0.18
+    const dofFocus = options.dofFocus ?? 1
+    const dofAperture = options.dofAperture ?? 0.00018
+    const dofMaxBlur = options.dofMaxBlur ?? 0.01
 
     this.composer = new EffectComposer(this.renderer)
     this.renderPass = new RenderPass(this.scene, this.camera)
     this.bloomPass = new UnrealBloomPass(new THREE.Vector2(1, 1), bloomStrength, bloomRadius, bloomThreshold)
+    this.bokehPass = new BokehPass(this.scene, this.camera, {
+      focus: dofFocus,
+      aperture: dofAperture,
+      maxblur: dofMaxBlur,
+      width: 1,
+      height: 1,
+    })
+    this.bokehPass.enabled = false
+
+    this.defaultBloom = {
+      strength: bloomStrength,
+      radius: bloomRadius,
+      threshold: bloomThreshold,
+    }
+    this.defaultDof = {
+      focus: dofFocus,
+      aperture: dofAperture,
+      maxblur: dofMaxBlur,
+    }
+
     this.composer.addPass(this.renderPass)
     this.composer.addPass(this.bloomPass)
+    this.composer.addPass(this.bokehPass)
 
     this.baseCameraPosition = this.camera.position.clone()
     this.cameraTarget = new THREE.Vector3(0, 0, 0)
@@ -82,6 +107,42 @@ export class Renderer {
     this.renderer.setSize(width, height, false)
     this.composer.setSize(width, height)
     this.bloomPass.resolution.set(width, height)
+    this.bokehPass.setSize(width, height)
+  }
+
+  setBloom(options = {}) {
+    const strength = options.strength ?? this.defaultBloom.strength
+    const radius = options.radius ?? this.defaultBloom.radius
+    const threshold = options.threshold ?? this.defaultBloom.threshold
+
+    this.bloomPass.strength = strength
+    this.bloomPass.radius = radius
+    this.bloomPass.threshold = threshold
+  }
+
+  setDepthOfField(options = {}) {
+    const enabled = options.enabled ?? false
+    this.bokehPass.enabled = enabled
+
+    if (options.focus !== undefined) {
+      this.bokehPass.materialBokeh.uniforms.focus.value = options.focus
+    }
+    if (options.aperture !== undefined) {
+      this.bokehPass.materialBokeh.uniforms.aperture.value = options.aperture
+    }
+    if (options.maxblur !== undefined) {
+      this.bokehPass.materialBokeh.uniforms.maxblur.value = options.maxblur
+    }
+  }
+
+  resetPostProcessing() {
+    this.setBloom(this.defaultBloom)
+    this.setDepthOfField({
+      enabled: false,
+      focus: this.defaultDof.focus,
+      aperture: this.defaultDof.aperture,
+      maxblur: this.defaultDof.maxblur,
+    })
   }
 
   updateIdleCameraMotion(elapsed) {
