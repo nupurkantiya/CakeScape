@@ -1,8 +1,5 @@
 import { useEffect, useRef } from "react"
-import { Renderer } from "../../three/core/Renderer"
-import { ScrollController } from "../../three/core/ScrollController"
-import { SceneManager } from "../../three/core/SceneManager"
-import { createScenes } from "../../three/scenes"
+import * as THREE from "three"
 
 function CanvasRoot() {
   const mountRef = useRef(null)
@@ -11,31 +8,26 @@ function CanvasRoot() {
     const mount = mountRef.current
     if (!mount) return undefined
 
-    const rendererCore = new Renderer(mount)
-    const scrollController = new ScrollController({ smoothing: 8.5 })
-    const sceneManager = new SceneManager({
-      scene: rendererCore.scene,
-      camera: rendererCore.camera,
-      renderer: rendererCore.renderer,
-      engine: rendererCore,
-    })
+    const scene = new THREE.Scene()
+    scene.background = new THREE.Color(0x000000)
 
-    const sceneDefinitions = createScenes()
-    sceneDefinitions.forEach(({ scene, range }) => {
-      sceneManager.register(scene, range)
-    })
-    sceneManager.init()
+    const camera = new THREE.PerspectiveCamera(45, mount.clientWidth / mount.clientHeight, 0.1, 200)
+    camera.position.set(0, 0.35, 8)
 
-    rendererCore.start(({ delta, elapsed }) => {
-      const smoothedProgress = scrollController.update(delta)
-      sceneManager.update(smoothedProgress, { delta, elapsed })
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: false,
+      powerPreference: "high-performance",
     })
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
+    renderer.setSize(Math.max(mount.clientWidth, 1), Math.max(mount.clientHeight, 1), false)
+    mount.appendChild(renderer.domElement)
 
     return () => {
-      rendererCore.stop()
-      sceneManager.dispose()
-      scrollController.dispose()
-      rendererCore.dispose()
+      renderer.dispose()
+      if (renderer.domElement.parentNode === mount) {
+        mount.removeChild(renderer.domElement)
+      }
     }
   }, [])
 

@@ -13,29 +13,21 @@ export function useScrollProgress() {
   const [progress, setProgress] = useState(0)
 
   useEffect(() => {
-    // Calculate scroll progress
     const handleScroll = () => {
-      // Total scrollable height = document height - viewport height
-      const scrollableHeight = document.documentElement.scrollHeight - window.innerHeight
-      
-      // Current scroll position
+      const scrollableHeight = Math.max(document.documentElement.scrollHeight - window.innerHeight, 1)
       const scrolled = window.scrollY
-      
-      // Progress = how far we've scrolled (0 to 1)
-      // Clamp between 0 and 1 to be safe
       const newProgress = Math.min(Math.max(scrolled / scrollableHeight, 0), 1)
-      
       setProgress(newProgress)
     }
 
-    // Listen for scroll events
     window.addEventListener("scroll", handleScroll, { passive: true })
-    
-    // Calculate initial progress
+    window.addEventListener("resize", handleScroll)
     handleScroll()
 
-    // Cleanup
-    return () => window.removeEventListener("scroll", handleScroll)
+    return () => {
+      window.removeEventListener("scroll", handleScroll)
+      window.removeEventListener("resize", handleScroll)
+    }
   }, [])
 
   return progress
