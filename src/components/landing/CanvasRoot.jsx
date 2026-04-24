@@ -70,6 +70,23 @@ function createLogoTargets(count) {
   return targets
 }
 
+function createStarField(count) {
+  const positions = new Float32Array(count * 3)
+
+  for (let i = 0; i < count; i++) {
+    const stride = i * 3
+
+    // Spread stars across a wide area in all 3 directions
+    positions[stride]     = (Math.random() - 0.5) * 20  // X
+    positions[stride + 1] = (Math.random() - 0.5) * 20  // Y
+    positions[stride + 2] = (Math.random() - 0.5) * 20  // Z
+  }
+
+  return positions
+}
+
+
+
 function CanvasRoot({ scrollProgress = 0 }) {
   const mountRef = useRef(null)
   const scrollProgressRef = useRef(scrollProgress)
@@ -169,12 +186,62 @@ function CanvasRoot({ scrollProgress = 0 }) {
     const particles = new THREE.Points(particleGeometry, particleMaterial)
     scene.add(particles)
 
+    // Create star field
+    const starPositions = createStarField(2000)
+
+    const starGeometry = new THREE.BufferGeometry()
+    starGeometry.setAttribute("position", new THREE.BufferAttribute(starPositions, 3))
+
+    const starMaterial = new THREE.PointsMaterial({
+      color: 0xffffff,
+      size: 0.04,
+      sizeAttenuation: true,
+      transparent: true,
+      opacity: 0,
+    })
+
+    const stars = new THREE.Points(starGeometry, starMaterial)
+    scene.add(stars)
+
+    // ← ADD GLOW CODE HERE
+    // Create soft circular glow texture using canvas
+    const glowCanvas = document.createElement("canvas")
+    glowCanvas.width = 128
+    glowCanvas.height = 128
+    const glowCtx = glowCanvas.getContext("2d")
+
+    // Draw a radial gradient — bright center, fades to transparent edge
+    const gradient = glowCtx.createRadialGradient(64, 64, 0, 64, 64, 64)
+    gradient.addColorStop(0, "rgba(248, 192, 96, 1)")
+    gradient.addColorStop(0.3, "rgba(248, 192, 96, 0.4)")
+    gradient.addColorStop(1, "rgba(248, 192, 96, 0)")
+
+    glowCtx.fillStyle = gradient
+    glowCtx.fillRect(0, 0, 128, 128)
+
+    const glowTexture = new THREE.CanvasTexture(glowCanvas)
+
+    const glowMaterial = new THREE.SpriteMaterial({
+      map: glowTexture,
+      transparent: true,
+      opacity: 0,
+      blending: THREE.AdditiveBlending,
+    })
+
+    const glow = new THREE.Sprite(glowMaterial)
+    glow.scale.set(3, 3, 1)
+    glow.position.set(0, 0, -5)
+    scene.add(glow)
+
     const clock = new THREE.Clock()
     let rafId = null
 
     const animate = () => {
       const elapsed = clock.getElapsedTime()
       const introProgress = THREE.MathUtils.clamp(scrollProgressRef.current / 0.15, 0, 1)
+      const scene2Progress = THREE.MathUtils.clamp(
+      (scrollProgressRef.current - 0.15) / 0.20, 0, 1
+      )
       const appearanceProgress = THREE.MathUtils.smoothstep(introProgress, 0.02, 0.24)
       const formationProgress = THREE.MathUtils.smoothstep(introProgress, 0.22, 0.74)
       const readableFormation = THREE.MathUtils.smoothstep(introProgress, 0.4, 0.68)
@@ -183,7 +250,11 @@ function CanvasRoot({ scrollProgress = 0 }) {
       const visibleCount = Math.max(1, Math.floor(1 + (particleCount - 1) * appearanceProgress))
 
       particleGeometry.setDrawRange(0, visibleCount)
-      particleMaterial.opacity = THREE.MathUtils.lerp(0.9, 0.25, shatterProgress)
+      particleMaterial.opacity = THREE.MathUtils.lerp(
+      THREE.MathUtils.lerp(0.9, 0.25, shatterProgress),
+      0,
+      scene2Progress
+      )
 
       for (let i = 0; i < particleCount; i += 1) {
         const stride = i * 3
@@ -217,6 +288,21 @@ function CanvasRoot({ scrollProgress = 0 }) {
       const shatterSpin = shatterProgress * elapsed * 0.12
       particles.rotation.y = swirlSpin + shatterSpin
 
+      // Fade stars in as Scene 2 starts
+      starMaterial.opacity = THREE.MathUtils.lerp(0, 0.8, scene2Progress)
+
+      starMaterial.opacity = THREE.MathUtils.lerp(0, 0.8, scene2Progress)
+      glowMaterial.opacity = THREE.MathUtils.lerp(0, 0.6, scene2Progress)  // ← ADD THIS
+
+      // Float each star gently
+      const starPositionsArray = starGeometry.attributes.position.array
+      for (let i = 0; i < 2000; i++) {
+        const stride = i * 3
+        starPositionsArray[stride + 1] = starPositions[stride + 1] + 
+          Math.sin(elapsed + i * 0.5) * 0.05
+      }
+      starGeometry.attributes.position.needsUpdate = true
+
       renderer.render(scene, camera)
       rafId = requestAnimationFrame(animate)
     }
@@ -235,6 +321,12 @@ function CanvasRoot({ scrollProgress = 0 }) {
       if (renderer.domElement.parentNode === mount) {
         mount.removeChild(renderer.domElement)
       }
+      starGeometry.dispose()
+      starMaterial.dispose()
+
+      scene.remove(glow)
+      glowMaterial.dispose()
+      glowTexture.dispose()
     }
   }, [])
 
