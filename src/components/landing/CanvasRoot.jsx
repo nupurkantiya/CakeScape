@@ -238,9 +238,9 @@ function CanvasRoot({ scrollProgress = 0 }) {
 
     const animate = () => {
       const elapsed = clock.getElapsedTime()
-      const introProgress = THREE.MathUtils.clamp(scrollProgressRef.current / 0.15, 0, 1)
+      const introProgress = THREE.MathUtils.clamp(scrollProgressRef.current / 0.25, 0, 1)
       const scene2Progress = THREE.MathUtils.clamp(
-      (scrollProgressRef.current - 0.15) / 0.20, 0, 1
+      (scrollProgressRef.current - 0.25) / 0.20, 0, 1
       )
       const appearanceProgress = THREE.MathUtils.smoothstep(introProgress, 0.02, 0.24)
       const formationProgress = THREE.MathUtils.smoothstep(introProgress, 0.22, 0.74)

@@ -15,8 +15,8 @@ function LandingExperience() {
 
   const scene2TextStyle = {
     opacity:
-      scrollProgress > 0.15 && scrollProgress < 0.35
-        ? Math.min((scrollProgress - 0.15) / 0.08, 1)
+      scrollProgress > 0.25 && scrollProgress < 0.45
+        ? Math.min((scrollProgress - 0.25) / 0.08, 1)
         : 0,
     transition: "opacity 0.3s ease",
   }
