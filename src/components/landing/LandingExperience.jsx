@@ -15,7 +15,7 @@ function LandingExperience() {
 
   return (
     <>
-      <CanvasRoot />
+      <CanvasRoot scrollProgress={scrollProgress} />
 
       <div className="landing-scroll-spacer" />
 

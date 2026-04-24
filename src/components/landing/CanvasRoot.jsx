@@ -48,8 +48,13 @@ function createLogoTargets(count) {
   return targets
 }
 
-function CanvasRoot() {
+function CanvasRoot({ scrollProgress = 0 }) {
   const mountRef = useRef(null)
+  const scrollProgressRef = useRef(scrollProgress)
+
+  useEffect(() => {
+    scrollProgressRef.current = scrollProgress
+  }, [scrollProgress])
 
   useEffect(() => {
     const mount = mountRef.current
@@ -70,6 +75,20 @@ function CanvasRoot() {
     renderer.setSize(Math.max(mount.clientWidth, 1), Math.max(mount.clientHeight, 1), false)
     mount.appendChild(renderer.domElement)
 
+    const handleResize = () => {
+      const width = Math.max(mount.clientWidth, 1)
+      const height = Math.max(mount.clientHeight, 1)
+
+      camera.aspect = width / height
+      camera.updateProjectionMatrix()
+
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
+      renderer.setSize(width, height, false)
+    }
+
+    window.addEventListener("resize", handleResize)
+    handleResize()
+
     const particleCount = 2000
     const positions = new Float32Array(particleCount * 3)
     const logoTargets = createLogoTargets(particleCount)
@@ -81,10 +100,10 @@ function CanvasRoot() {
     for (let i = 0; i < particleCount; i += 1) {
       const stride = i * 3
 
-      radii[i] = 0.45 + Math.random() * 2.8
+      radii[i] = i === 0 ? 0.08 : 0.45 + Math.random() * 2.8
       angles[i] = Math.random() * Math.PI * 2
-      heights[i] = (Math.random() - 0.5) * 2.6
-      speeds[i] = 0.45 + Math.random() * 0.8
+      heights[i] = i === 0 ? 0 : (Math.random() - 0.5) * 2.6
+      speeds[i] = i === 0 ? 0.12 : 0.45 + Math.random() * 0.8
 
       positions[stride] = Math.cos(angles[i]) * radii[i]
       positions[stride + 1] = heights[i]
@@ -93,6 +112,7 @@ function CanvasRoot() {
 
     const particleGeometry = new THREE.BufferGeometry()
     particleGeometry.setAttribute("position", new THREE.BufferAttribute(positions, 3))
+    particleGeometry.setDrawRange(0, 1)
 
     const particleMaterial = new THREE.PointsMaterial({
       color: 0xf8d47a,
@@ -111,7 +131,12 @@ function CanvasRoot() {
 
     const animate = () => {
       const elapsed = clock.getElapsedTime()
-      const formationProgress = THREE.MathUtils.smoothstep(elapsed, 1.8, 5.8)
+      const introProgress = THREE.MathUtils.clamp(scrollProgressRef.current / 0.1, 0, 1)
+      const appearanceProgress = THREE.MathUtils.smoothstep(introProgress, 0.03, 0.3)
+      const formationProgress = THREE.MathUtils.smoothstep(introProgress, 0.18, 0.82)
+      const visibleCount = Math.max(1, Math.floor(1 + (particleCount - 1) * appearanceProgress))
+
+      particleGeometry.setDrawRange(0, visibleCount)
 
       for (let i = 0; i < particleCount; i += 1) {
         const stride = i * 3
@@ -144,6 +169,7 @@ function CanvasRoot() {
       if (rafId) {
         cancelAnimationFrame(rafId)
       }
+      window.removeEventListener("resize", handleResize)
       scene.remove(particles)
       particleGeometry.dispose()
       particleMaterial.dispose()
