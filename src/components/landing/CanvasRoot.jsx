@@ -3,8 +3,8 @@ import * as THREE from "three"
 
 function createLogoTargets(count) {
   const canvas = document.createElement("canvas")
-  canvas.width = 1024
-  canvas.height = 280
+  canvas.width = 1400
+  canvas.height = 420
   const ctx = canvas.getContext("2d")
 
   const targets = new Float32Array(count * 3)
@@ -13,18 +13,18 @@ function createLogoTargets(count) {
   ctx.fillStyle = "black"
   ctx.fillRect(0, 0, canvas.width, canvas.height)
   ctx.fillStyle = "white"
-  ctx.font = "900 170px Arial"
+  ctx.font = "900 210px sans-serif"
   ctx.textAlign = "center"
   ctx.textBaseline = "middle"
-  ctx.fillText("CAKESCAPE", canvas.width * 0.5, canvas.height * 0.53)
+  ctx.fillText("CakeScape", canvas.width * 0.5, canvas.height * 0.52)
 
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height).data
   const samples = []
 
-  for (let y = 0; y < canvas.height; y += 4) {
-    for (let x = 0; x < canvas.width; x += 4) {
+  for (let y = 0; y < canvas.height; y += 2) {
+    for (let x = 0; x < canvas.width; x += 2) {
       const alpha = imageData[(y * canvas.width + x) * 4 + 3]
-      if (alpha > 100) {
+      if (alpha > 40) {
         samples.push({ x, y })
       }
     }
@@ -34,14 +34,35 @@ function createLogoTargets(count) {
     return targets
   }
 
+  let minX = Infinity
+  let maxX = -Infinity
+  let minY = Infinity
+  let maxY = -Infinity
+
+  for (let i = 0; i < samples.length; i += 1) {
+    const { x, y } = samples[i]
+    if (x < minX) minX = x
+    if (x > maxX) maxX = x
+    if (y < minY) minY = y
+    if (y > maxY) maxY = y
+  }
+
+  const textWidth = Math.max(maxX - minX, 1)
+  const textHeight = Math.max(maxY - minY, 1)
+  const targetWidth = 6.2
+  const targetHeight = 2.1
+  const uniformScale = Math.min(targetWidth / textWidth, targetHeight / textHeight)
+  const centerX = (minX + maxX) * 0.5
+  const centerY = (minY + maxY) * 0.5
+
   for (let i = 0; i < count; i += 1) {
     const stride = i * 3
     const point = samples[i % samples.length]
     const jitterX = (Math.random() - 0.5) * 0.06
     const jitterY = (Math.random() - 0.5) * 0.06
 
-    targets[stride] = ((point.x / canvas.width) - 0.5) * 8.6 + jitterX
-    targets[stride + 1] = (0.5 - (point.y / canvas.height)) * 2.2 + jitterY
+    targets[stride] = (point.x - centerX) * uniformScale + jitterX
+    targets[stride + 1] = (centerY - point.y) * uniformScale + jitterY
     targets[stride + 2] = (Math.random() - 0.5) * 0.18
   }
 
@@ -96,6 +117,7 @@ function CanvasRoot({ scrollProgress = 0 }) {
     const angles = new Float32Array(particleCount)
     const heights = new Float32Array(particleCount)
     const speeds = new Float32Array(particleCount)
+    const shatterDirections = new Float32Array(particleCount * 3)
 
     for (let i = 0; i < particleCount; i += 1) {
       const stride = i * 3
@@ -108,6 +130,25 @@ function CanvasRoot({ scrollProgress = 0 }) {
       positions[stride] = Math.cos(angles[i]) * radii[i]
       positions[stride + 1] = heights[i]
       positions[stride + 2] = Math.sin(angles[i]) * radii[i]
+
+      const direction = new THREE.Vector3(
+        logoTargets[stride],
+        logoTargets[stride + 1],
+        logoTargets[stride + 2]
+      )
+      if (direction.lengthSq() < 0.0001) {
+        direction.set((Math.random() - 0.5) * 0.1, Math.random() * 0.12, (Math.random() - 0.5) * 0.1)
+      }
+
+      direction.normalize()
+      direction.x += (Math.random() - 0.5) * 0.4
+      direction.y += (Math.random() - 0.15) * 0.35
+      direction.z += (Math.random() - 0.5) * 0.4
+      direction.normalize()
+
+      shatterDirections[stride] = direction.x
+      shatterDirections[stride + 1] = direction.y
+      shatterDirections[stride + 2] = direction.z
     }
 
     const particleGeometry = new THREE.BufferGeometry()
@@ -134,9 +175,11 @@ function CanvasRoot({ scrollProgress = 0 }) {
       const introProgress = THREE.MathUtils.clamp(scrollProgressRef.current / 0.1, 0, 1)
       const appearanceProgress = THREE.MathUtils.smoothstep(introProgress, 0.03, 0.3)
       const formationProgress = THREE.MathUtils.smoothstep(introProgress, 0.18, 0.82)
+      const shatterProgress = THREE.MathUtils.smoothstep(introProgress, 0.82, 0.98)
       const visibleCount = Math.max(1, Math.floor(1 + (particleCount - 1) * appearanceProgress))
 
       particleGeometry.setDrawRange(0, visibleCount)
+      particleMaterial.opacity = THREE.MathUtils.lerp(0.9, 0.25, shatterProgress)
 
       for (let i = 0; i < particleCount; i += 1) {
         const stride = i * 3
@@ -151,9 +194,18 @@ function CanvasRoot({ scrollProgress = 0 }) {
         const targetY = logoTargets[stride + 1]
         const targetZ = logoTargets[stride + 2]
 
-        positions[stride] = THREE.MathUtils.lerp(swirlX, targetX, formationProgress)
-        positions[stride + 1] = THREE.MathUtils.lerp(swirlY, targetY, formationProgress)
-        positions[stride + 2] = THREE.MathUtils.lerp(swirlZ, targetZ, formationProgress)
+        const formedX = THREE.MathUtils.lerp(swirlX, targetX, formationProgress)
+        const formedY = THREE.MathUtils.lerp(swirlY, targetY, formationProgress)
+        const formedZ = THREE.MathUtils.lerp(swirlZ, targetZ, formationProgress)
+
+        const shatterDistance = 4.5 * shatterProgress
+        const shatteredX = formedX + shatterDirections[stride] * shatterDistance
+        const shatteredY = formedY + shatterDirections[stride + 1] * shatterDistance
+        const shatteredZ = formedZ + shatterDirections[stride + 2] * shatterDistance
+
+        positions[stride] = THREE.MathUtils.lerp(formedX, shatteredX, shatterProgress)
+        positions[stride + 1] = THREE.MathUtils.lerp(formedY, shatteredY, shatterProgress)
+        positions[stride + 2] = THREE.MathUtils.lerp(formedZ, shatteredZ, shatterProgress)
       }
 
       particleGeometry.attributes.position.needsUpdate = true
