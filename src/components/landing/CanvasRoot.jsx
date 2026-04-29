@@ -234,17 +234,28 @@ function CanvasRoot({ scrollProgress = 0 }) {
     scene.add(glow)
 
     // ← ADD EGG CODE RIGHT HERE
-    const eggGeometry = new THREE.SphereGeometry(0.6, 32, 32)
+    // Egg material — shared between both halves
     const eggMaterial = new THREE.MeshStandardMaterial({
       color: 0xf5e6c8,
       roughness: 0.8,
       metalness: 0.0,
     })
-    const egg = new THREE.Mesh(eggGeometry, eggMaterial)
-    egg.scale.set(1, 1.3, 1)
-    egg.position.set(0, 0, -4)
-    egg.visible = false
-    scene.add(egg)
+
+    // Top half — open end faces down (phiStart covers top hemisphere)
+    const eggTopGeo = new THREE.SphereGeometry(0.6, 32, 16, 0, Math.PI * 2, 0, Math.PI * 0.5)
+    const eggTop = new THREE.Mesh(eggTopGeo, eggMaterial)
+    eggTop.scale.set(1, 1.3, 1)
+    eggTop.position.set(0, 0, -4)
+    eggTop.visible = false
+    scene.add(eggTop)
+
+    // Bottom half
+    const eggBottomGeo = new THREE.SphereGeometry(0.6, 32, 16, 0, Math.PI * 2, Math.PI * 0.5, Math.PI * 0.5)
+    const eggBottom = new THREE.Mesh(eggBottomGeo, eggMaterial)
+    eggBottom.scale.set(1, 1.3, 1)
+    eggBottom.position.set(0, 0, -4)
+    eggBottom.visible = false
+    scene.add(eggBottom)
 
     // Warm light for the egg
     const eggLight = new THREE.PointLight(0xf8c060, 0, 6)
@@ -263,17 +274,24 @@ function CanvasRoot({ scrollProgress = 0 }) {
       const scene3Progress = THREE.MathUtils.clamp(
       (scrollProgressRef.current - 0.45) / 0.20, 0, 1
       )
-      // Zoom camera toward glow as Scene 3 progresses
-      camera.position.z = THREE.MathUtils.lerp(8, 3, scene3Progress)
+    // Zoom camera toward glow as Scene 3 progresses
+  camera.position.z = THREE.MathUtils.lerp(8, 3, scene3Progress)
 
-      // Show egg when Scene 3 starts
-      egg.visible = scene3Progress > 0
+    // Show both halves when Scene 3 starts
+    eggTop.visible = scene3Progress > 0
+    eggBottom.visible = scene3Progress > 0
 
-      // Fade in the egg light
-      eggLight.intensity = THREE.MathUtils.lerp(0, 3, scene3Progress)
+    // Crack progress — only starts at 50% of Scene 3
+    const crackProgress = THREE.MathUtils.clamp(
+      (scene3Progress - 0.5) / 0.5, 0, 1
+    )
 
-      // Gentle egg rotation
-      egg.rotation.y = scene3Progress * Math.PI * 0.5
+    // Top half moves up, bottom half moves down
+    eggTop.position.y = THREE.MathUtils.lerp(0, 0.8, crackProgress)
+    eggBottom.position.y = THREE.MathUtils.lerp(0, -0.4, crackProgress)
+
+    // Light gets brighter as egg cracks open
+    eggLight.intensity = THREE.MathUtils.lerp(0, 6, scene3Progress)
 
       const appearanceProgress = THREE.MathUtils.smoothstep(introProgress, 0.02, 0.24)
       const formationProgress = THREE.MathUtils.smoothstep(introProgress, 0.22, 0.74)
@@ -361,9 +379,10 @@ function CanvasRoot({ scrollProgress = 0 }) {
       glowMaterial.dispose()
       glowTexture.dispose()
 
-      scene.remove(egg)
-      scene.remove(eggLight)
-      eggGeometry.dispose()
+      scene.remove(eggTop)
+      scene.remove(eggBottom)
+      eggTopGeo.dispose()
+      eggBottomGeo.dispose()
       eggMaterial.dispose()
     }
   }, [])
