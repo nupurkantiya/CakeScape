@@ -242,6 +242,12 @@ function CanvasRoot({ scrollProgress = 0 }) {
       const scene2Progress = THREE.MathUtils.clamp(
       (scrollProgressRef.current - 0.25) / 0.20, 0, 1
       )
+      const scene3Progress = THREE.MathUtils.clamp(
+      (scrollProgressRef.current - 0.45) / 0.20, 0, 1
+      )
+      // Zoom camera toward glow as Scene 3 progresses
+      camera.position.z = THREE.MathUtils.lerp(8, 3, scene3Progress)
+      
       const appearanceProgress = THREE.MathUtils.smoothstep(introProgress, 0.02, 0.24)
       const formationProgress = THREE.MathUtils.smoothstep(introProgress, 0.22, 0.74)
       const readableFormation = THREE.MathUtils.smoothstep(introProgress, 0.4, 0.68)
