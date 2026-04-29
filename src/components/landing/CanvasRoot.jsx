@@ -252,7 +252,7 @@ function CanvasRoot({ scrollProgress = 0 }) {
     // Bottom half
     const eggBottomGeo = new THREE.SphereGeometry(0.6, 32, 16, 0, Math.PI * 2, Math.PI * 0.5, Math.PI * 0.5)
     const eggBottom = new THREE.Mesh(eggBottomGeo, eggMaterial)
-    eggBottom.scale.set(1, 1.3, 1)
+    eggBottom.scale.set(0.9, 0.9, 0.9)
     eggBottom.position.set(0, 0, -4)
     eggBottom.visible = false
     scene.add(eggBottom)
@@ -275,7 +275,7 @@ function CanvasRoot({ scrollProgress = 0 }) {
       (scrollProgressRef.current - 0.45) / 0.20, 0, 1
       )
     // Zoom camera toward glow as Scene 3 progresses
-  camera.position.z = THREE.MathUtils.lerp(8, 3, scene3Progress)
+    camera.position.z = THREE.MathUtils.lerp(8, 3, scene3Progress)
 
     // Show both halves when Scene 3 starts
     eggTop.visible = scene3Progress > 0
@@ -289,9 +289,15 @@ function CanvasRoot({ scrollProgress = 0 }) {
     // Top half moves up, bottom half moves down
     eggTop.position.y = THREE.MathUtils.lerp(0, 0.8, crackProgress)
     eggBottom.position.y = THREE.MathUtils.lerp(0, -0.4, crackProgress)
+    eggMaterial.transparent = true
+    eggMaterial.opacity = THREE.MathUtils.lerp(1, 0, crackProgress)
+    eggBottom.visible = crackProgress < 0.9
 
     // Light gets brighter as egg cracks open
-    eggLight.intensity = THREE.MathUtils.lerp(0, 6, scene3Progress)
+    eggLight.intensity = THREE.MathUtils.lerp(0, 12, scene3Progress)
+    // Pull glow forward into the crack gap
+    glow.position.z = THREE.MathUtils.lerp(-5, -4, crackProgress)
+    glow.scale.setScalar(THREE.MathUtils.lerp(3, 1.2, crackProgress))
 
       const appearanceProgress = THREE.MathUtils.smoothstep(introProgress, 0.02, 0.24)
       const formationProgress = THREE.MathUtils.smoothstep(introProgress, 0.22, 0.74)
