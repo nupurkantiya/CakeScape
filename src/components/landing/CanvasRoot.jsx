@@ -233,6 +233,24 @@ function CanvasRoot({ scrollProgress = 0 }) {
     glow.position.set(0, 0, -5)
     scene.add(glow)
 
+    // ← ADD EGG CODE RIGHT HERE
+    const eggGeometry = new THREE.SphereGeometry(0.6, 32, 32)
+    const eggMaterial = new THREE.MeshStandardMaterial({
+      color: 0xf5e6c8,
+      roughness: 0.8,
+      metalness: 0.0,
+    })
+    const egg = new THREE.Mesh(eggGeometry, eggMaterial)
+    egg.scale.set(1, 1.3, 1)
+    egg.position.set(0, 0, -4)
+    egg.visible = false
+    scene.add(egg)
+
+    // Warm light for the egg
+    const eggLight = new THREE.PointLight(0xf8c060, 0, 6)
+    eggLight.position.set(0, 1, -3)
+    scene.add(eggLight)
+
     const clock = new THREE.Clock()
     let rafId = null
 
@@ -247,7 +265,16 @@ function CanvasRoot({ scrollProgress = 0 }) {
       )
       // Zoom camera toward glow as Scene 3 progresses
       camera.position.z = THREE.MathUtils.lerp(8, 3, scene3Progress)
-      
+
+      // Show egg when Scene 3 starts
+      egg.visible = scene3Progress > 0
+
+      // Fade in the egg light
+      eggLight.intensity = THREE.MathUtils.lerp(0, 3, scene3Progress)
+
+      // Gentle egg rotation
+      egg.rotation.y = scene3Progress * Math.PI * 0.5
+
       const appearanceProgress = THREE.MathUtils.smoothstep(introProgress, 0.02, 0.24)
       const formationProgress = THREE.MathUtils.smoothstep(introProgress, 0.22, 0.74)
       const readableFormation = THREE.MathUtils.smoothstep(introProgress, 0.4, 0.68)
@@ -333,6 +360,11 @@ function CanvasRoot({ scrollProgress = 0 }) {
       scene.remove(glow)
       glowMaterial.dispose()
       glowTexture.dispose()
+
+      scene.remove(egg)
+      scene.remove(eggLight)
+      eggGeometry.dispose()
+      eggMaterial.dispose()
     }
   }, [])
 
