@@ -234,136 +234,143 @@ function CanvasRoot({ scrollProgress = 0 }) {
     scene.add(glow)
 
     // ← ADD EGG CODE RIGHT HERE
-    // Egg material — shared between both halves
-    const eggMaterial = new THREE.MeshStandardMaterial({
+      const eggMaterial = new THREE.MeshStandardMaterial({
       color: 0xf5e6c8,
       roughness: 0.8,
       metalness: 0.0,
     })
 
-    // Top half — open end faces down (phiStart covers top hemisphere)
-    const eggTopGeo = new THREE.SphereGeometry(0.6, 32, 16, 0, Math.PI * 2, 0, Math.PI * 0.5)
+    // Top half — upper hemisphere
+    const eggTopGeo = new THREE.SphereGeometry(
+      0.6, 32, 16,
+      0, Math.PI * 2,  // full circle
+      0, Math.PI * 0.5 // top half only
+    )
     const eggTop = new THREE.Mesh(eggTopGeo, eggMaterial)
     eggTop.scale.set(1, 1.3, 1)
     eggTop.position.set(0, 0, -4)
     eggTop.visible = false
     scene.add(eggTop)
 
-    // Bottom half
-    const eggBottomGeo = new THREE.SphereGeometry(0.6, 32, 16, 0, Math.PI * 2, Math.PI * 0.5, Math.PI * 0.5)
+    // Bottom half — lower hemisphere
+    const eggBottomGeo = new THREE.SphereGeometry(
+      0.6, 32, 16,
+      0, Math.PI * 2,   // full circle
+      Math.PI * 0.5, Math.PI * 0.5 // bottom half only
+    )
     const eggBottom = new THREE.Mesh(eggBottomGeo, eggMaterial)
-    eggBottom.scale.set(0.9, 0.9, 0.9)
+    eggBottom.scale.set(1, 1.3, 1)
     eggBottom.position.set(0, 0, -4)
     eggBottom.visible = false
     scene.add(eggBottom)
 
     // Warm light for the egg
     const eggLight = new THREE.PointLight(0xf8c060, 0, 6)
-    eggLight.position.set(0, 1, -3)
+    eggLight.position.set(0, 1, -2)
     scene.add(eggLight)
 
     const clock = new THREE.Clock()
     let rafId = null
 
     const animate = () => {
-      const elapsed = clock.getElapsedTime()
-      const introProgress = THREE.MathUtils.clamp(scrollProgressRef.current / 0.25, 0, 1)
-      const scene2Progress = THREE.MathUtils.clamp(
+    const elapsed = clock.getElapsedTime()
+    
+    // --- PROGRESS VALUES --- all at top
+    const introProgress = THREE.MathUtils.clamp(
+      scrollProgressRef.current / 0.25, 0, 1
+    )
+    const scene2Progress = THREE.MathUtils.clamp(
       (scrollProgressRef.current - 0.25) / 0.20, 0, 1
-      )
-      const scene3Progress = THREE.MathUtils.clamp(
+    )
+    const scene3Progress = THREE.MathUtils.clamp(
       (scrollProgressRef.current - 0.45) / 0.20, 0, 1
-      )
-    // Zoom camera toward glow as Scene 3 progresses
-    camera.position.z = THREE.MathUtils.lerp(8, 3, scene3Progress)
-
-    // Show both halves when Scene 3 starts
-    eggTop.visible = scene3Progress > 0
-    eggBottom.visible = scene3Progress > 0
-
-    // Crack progress — only starts at 50% of Scene 3
+    )
     const crackProgress = THREE.MathUtils.clamp(
       (scene3Progress - 0.5) / 0.5, 0, 1
     )
 
-    // Top half moves up, bottom half moves down
-    eggTop.position.y = THREE.MathUtils.lerp(0, 0.8, crackProgress)
-    eggBottom.position.y = THREE.MathUtils.lerp(0, -0.4, crackProgress)
-    eggMaterial.transparent = true
-    eggMaterial.opacity = THREE.MathUtils.lerp(1, 0, crackProgress)
-    eggBottom.visible = crackProgress < 0.9
+    // --- SCENE 1: Logo particles ---
+    const appearanceProgress = THREE.MathUtils.smoothstep(introProgress, 0.02, 0.24)
+    const formationProgress = THREE.MathUtils.smoothstep(introProgress, 0.22, 0.74)
+    const readableFormation = THREE.MathUtils.smoothstep(introProgress, 0.4, 0.68)
+    const finalFormation = Math.max(formationProgress, readableFormation)
+    const shatterProgress = THREE.MathUtils.smoothstep(introProgress, 0.8, 0.98)
+    const visibleCount = Math.max(1, Math.floor(1 + (particleCount - 1) * appearanceProgress))
 
-    // Light gets brighter as egg cracks open
-    eggLight.intensity = THREE.MathUtils.lerp(0, 12, scene3Progress)
-    // Pull glow forward into the crack gap
-    glow.position.z = THREE.MathUtils.lerp(-5, -4, crackProgress)
-    glow.scale.setScalar(THREE.MathUtils.lerp(3, 1.2, crackProgress))
-
-      const appearanceProgress = THREE.MathUtils.smoothstep(introProgress, 0.02, 0.24)
-      const formationProgress = THREE.MathUtils.smoothstep(introProgress, 0.22, 0.74)
-      const readableFormation = THREE.MathUtils.smoothstep(introProgress, 0.4, 0.68)
-      const finalFormation = Math.max(formationProgress, readableFormation)
-      const shatterProgress = THREE.MathUtils.smoothstep(introProgress, 0.8, 0.98)
-      const visibleCount = Math.max(1, Math.floor(1 + (particleCount - 1) * appearanceProgress))
-
-      particleGeometry.setDrawRange(0, visibleCount)
-      particleMaterial.opacity = THREE.MathUtils.lerp(
+    particleGeometry.setDrawRange(0, visibleCount)
+    particleMaterial.opacity = THREE.MathUtils.lerp(
       THREE.MathUtils.lerp(0.9, 0.25, shatterProgress),
       0,
       scene2Progress
-      )
+    )
 
-      for (let i = 0; i < particleCount; i += 1) {
-        const stride = i * 3
-        const angle = angles[i] + elapsed * speeds[i]
-        const radius = radii[i] + Math.sin(elapsed * 1.1 + i * 0.02) * 0.08
+    for (let i = 0; i < particleCount; i++) {
+      const stride = i * 3
+      const angle = angles[i] + elapsed * speeds[i]
+      const radius = radii[i] + Math.sin(elapsed * 1.1 + i * 0.02) * 0.08
 
-        const swirlX = Math.cos(angle) * radius
-        const swirlY = heights[i] + Math.sin(elapsed * 1.6 + i * 0.015) * 0.1
-        const swirlZ = Math.sin(angle) * radius
+      const swirlX = Math.cos(angle) * radius
+      const swirlY = heights[i] + Math.sin(elapsed * 1.6 + i * 0.015) * 0.1
+      const swirlZ = Math.sin(angle) * radius
 
-        const targetX = logoTargets[stride]
-        const targetY = logoTargets[stride + 1]
-        const targetZ = logoTargets[stride + 2]
+      const targetX = logoTargets[stride]
+      const targetY = logoTargets[stride + 1]
+      const targetZ = logoTargets[stride + 2]
 
-        const formedX = THREE.MathUtils.lerp(swirlX, targetX, finalFormation)
-        const formedY = THREE.MathUtils.lerp(swirlY, targetY, finalFormation)
-        const formedZ = THREE.MathUtils.lerp(swirlZ, targetZ, finalFormation)
+      const formedX = THREE.MathUtils.lerp(swirlX, targetX, finalFormation)
+      const formedY = THREE.MathUtils.lerp(swirlY, targetY, finalFormation)
+      const formedZ = THREE.MathUtils.lerp(swirlZ, targetZ, finalFormation)
 
-        const shatterDistance = 4.5 * shatterProgress
-        const shatteredX = formedX + shatterDirections[stride] * shatterDistance
-        const shatteredY = formedY + shatterDirections[stride + 1] * shatterDistance
-        const shatteredZ = formedZ + shatterDirections[stride + 2] * shatterDistance
+      const shatterDistance = 4.5 * shatterProgress
+      const shatteredX = formedX + shatterDirections[stride] * shatterDistance
+      const shatteredY = formedY + shatterDirections[stride + 1] * shatterDistance
+      const shatteredZ = formedZ + shatterDirections[stride + 2] * shatterDistance
 
-        positions[stride] = THREE.MathUtils.lerp(formedX, shatteredX, shatterProgress)
-        positions[stride + 1] = THREE.MathUtils.lerp(formedY, shatteredY, shatterProgress)
-        positions[stride + 2] = THREE.MathUtils.lerp(formedZ, shatteredZ, shatterProgress)
-      }
-
-      particleGeometry.attributes.position.needsUpdate = true
-      const swirlSpin = (1 - finalFormation) * elapsed * 0.08
-      const shatterSpin = shatterProgress * elapsed * 0.12
-      particles.rotation.y = swirlSpin + shatterSpin
-
-      // Fade stars in as Scene 2 starts
-      starMaterial.opacity = THREE.MathUtils.lerp(0, 0.8, scene2Progress)
-
-      starMaterial.opacity = THREE.MathUtils.lerp(0, 0.8, scene2Progress)
-      glowMaterial.opacity = THREE.MathUtils.lerp(0, 0.6, scene2Progress)  // ← ADD THIS
-
-      // Float each star gently
-      const starPositionsArray = starGeometry.attributes.position.array
-      for (let i = 0; i < 2000; i++) {
-        const stride = i * 3
-        starPositionsArray[stride + 1] = starPositions[stride + 1] + 
-          Math.sin(elapsed + i * 0.5) * 0.05
-      }
-      starGeometry.attributes.position.needsUpdate = true
-
-      renderer.render(scene, camera)
-      rafId = requestAnimationFrame(animate)
+      positions[stride] = THREE.MathUtils.lerp(formedX, shatteredX, shatterProgress)
+      positions[stride + 1] = THREE.MathUtils.lerp(formedY, shatteredY, shatterProgress)
+      positions[stride + 2] = THREE.MathUtils.lerp(formedZ, shatteredZ, shatterProgress)
     }
 
+    particleGeometry.attributes.position.needsUpdate = true
+    const swirlSpin = (1 - finalFormation) * elapsed * 0.08
+    const shatterSpin = shatterProgress * elapsed * 0.12
+    particles.rotation.y = swirlSpin + shatterSpin
+
+    // --- SCENE 2: Stars and glow ---
+    starMaterial.opacity = THREE.MathUtils.lerp(0, 0.8, scene2Progress)
+    glowMaterial.opacity = THREE.MathUtils.lerp(0, 0.6, scene2Progress)
+
+    const starPositionsArray = starGeometry.attributes.position.array
+    for (let i = 0; i < 2000; i++) {
+      const stride = i * 3
+      starPositionsArray[stride + 1] = starPositions[stride + 1] +
+        Math.sin(elapsed + i * 0.5) * 0.05
+    }
+    starGeometry.attributes.position.needsUpdate = true
+
+    // --- SCENE 3: Egg ---
+    camera.position.z = THREE.MathUtils.lerp(8, 3, scene3Progress)
+
+    eggTop.visible = scene3Progress > 0
+    eggBottom.visible = scene3Progress > 0 && crackProgress < 0.9
+
+    eggTop.position.y = THREE.MathUtils.lerp(0, 0.8, crackProgress)
+    eggBottom.position.y = THREE.MathUtils.lerp(0, -0.4, crackProgress)
+
+    eggMaterial.transparent = true
+    eggMaterial.opacity = THREE.MathUtils.lerp(1, 0, crackProgress)
+
+    eggLight.intensity = THREE.MathUtils.lerp(2, 12, crackProgress)
+
+    glow.position.z = THREE.MathUtils.lerp(-5, -4, crackProgress)
+    glow.scale.setScalar(THREE.MathUtils.lerp(3, 1.2, crackProgress))
+
+    // --- RENDER ---
+    renderer.render(scene, camera)
+    rafId = requestAnimationFrame(animate)
+  }
+
+animate()
     animate()
 
     return () => {
