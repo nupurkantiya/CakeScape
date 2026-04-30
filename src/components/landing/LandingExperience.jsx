@@ -21,6 +21,14 @@ function LandingExperience() {
     transition: "opacity 0.3s ease",
   }
 
+  const scene3TextStyle = {
+    opacity:
+      scrollProgress > 0.45 && scrollProgress < 0.65
+        ? Math.min((scrollProgress - 0.45) / 0.08, 1)
+        : 0,
+    transition: "opacity 0.3s ease",
+  }
+
   return (
     <>
       <CanvasRoot scrollProgress={scrollProgress} />
@@ -35,6 +43,9 @@ function LandingExperience() {
       <div className="scene2-text" style={scene2TextStyle}>
         <p>Close your eyes...</p>
         <p>imagine.</p>
+      </div>
+      <div className="scene3-text" style={scene3TextStyle}>
+        <p>From the purest ingredients...</p>
       </div>
     </>
   )
