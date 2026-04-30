@@ -270,3 +270,18 @@
   line-height: 2;
   text-shadow: 0 0 20px rgba(248, 212, 122, 0.4);
 }
+
+
+.scene3-text {
+  position: fixed;
+  bottom: 12%;
+  width: 100%;
+  text-align: center;
+  pointer-events: none;
+  z-index: 10;
+  color: #f8d47a;
+  font-size: 1.6rem;
+  font-style: italic;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 20px rgba(248, 212, 122, 0.4);
+}
