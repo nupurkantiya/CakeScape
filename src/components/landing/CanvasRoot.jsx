@@ -269,6 +269,21 @@ function CanvasRoot({ scrollProgress = 0 }) {
     eggLight.position.set(0, 1, -2)
     scene.add(eggLight)
 
+    // --- SCENE 4: BASE CAKE LAYER ---
+    const cakeRadius = 2
+    const baseCakeHeight = 1.5
+    const baseGeometry = new THREE.CylinderGeometry(cakeRadius, cakeRadius, baseCakeHeight, 32)
+    const baseMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0x3d2314, // chocolate brown
+      roughness: 0.8
+    })
+    const baseCakeMesh = new THREE.Mesh(baseGeometry, baseMaterial)
+    
+    // Initial state: hidden (scale 0) and at floor level
+    baseCakeMesh.scale.y = 0
+    baseCakeMesh.position.y = 0
+    scene.add(baseCakeMesh)
+
     const clock = new THREE.Clock()
     let rafId = null
 
@@ -397,6 +412,10 @@ animate()
       eggTopGeo.dispose()
       eggBottomGeo.dispose()
       eggMaterial.dispose()
+      
+      scene.remove(baseCakeMesh)
+      baseGeometry.dispose()
+      baseMaterial.dispose()
     }
   }, [])
 
