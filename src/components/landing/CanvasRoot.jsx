@@ -303,6 +303,9 @@ function CanvasRoot({ scrollProgress = 0 }) {
     const crackProgress = THREE.MathUtils.clamp(
       (scene3Progress - 0.5) / 0.5, 0, 1
     )
+    const scene4Progress = THREE.MathUtils.clamp(
+      (scrollProgressRef.current - 0.65) / 0.20, 0, 1
+    )
 
     // --- SCENE 1: Logo particles ---
     const appearanceProgress = THREE.MathUtils.smoothstep(introProgress, 0.02, 0.24)
@@ -379,6 +382,12 @@ function CanvasRoot({ scrollProgress = 0 }) {
 
     glow.position.z = THREE.MathUtils.lerp(-5, -4, crackProgress)
     glow.scale.setScalar(THREE.MathUtils.lerp(3, 1.2, crackProgress))
+
+    // --- SCENE 4: Base Cake Animation ---
+    baseCakeMesh.visible = scene4Progress > 0
+    baseCakeMesh.scale.y = THREE.MathUtils.lerp(0, 1, scene4Progress)
+    // The scale and shift trick: position.y is exactly half the total height
+    baseCakeMesh.position.y = (baseCakeHeight * baseCakeMesh.scale.y) / 2
 
     // --- RENDER ---
     renderer.render(scene, camera)
