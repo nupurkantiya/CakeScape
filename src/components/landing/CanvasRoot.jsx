@@ -389,6 +389,25 @@ function CanvasRoot({ scrollProgress = 0 }) {
     // The scale and shift trick: position.y is exactly half the total height
     baseCakeMesh.position.y = (baseCakeHeight * baseCakeMesh.scale.y) / 2
 
+    // Camera Orbit using Trigonometry
+    if (scene4Progress > 0) {
+      // Start at PI/2 (which means x=0, z=radius) and orbit 180 degrees (PI)
+      const orbitAngle = (Math.PI / 2) + (scene4Progress * Math.PI)
+      const orbitRadius = THREE.MathUtils.lerp(3, 5, scene4Progress)
+      
+      camera.position.x = Math.cos(orbitAngle) * orbitRadius
+      camera.position.z = Math.sin(orbitAngle) * orbitRadius
+      camera.position.y = THREE.MathUtils.lerp(0.35, 2.5, scene4Progress)
+      
+      // Keep the lens focused on the cake base as we fly around it
+      camera.lookAt(0, baseCakeMesh.position.y, 0)
+    } else {
+      camera.position.x = 0
+      camera.position.y = 0.35
+      // camera.position.z is handled by scene3Progress above
+      camera.lookAt(0, 0, 0)
+    }
+
     // --- RENDER ---
     renderer.render(scene, camera)
     rafId = requestAnimationFrame(animate)
