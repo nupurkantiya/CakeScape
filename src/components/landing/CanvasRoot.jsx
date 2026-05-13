@@ -299,6 +299,14 @@ function CanvasRoot({ scrollProgress = 0 }) {
     middleCakeMesh.position.y = 0
     scene.add(middleCakeMesh)
 
+    // --- SCENE 4: CAKE LIGHT ---
+    const cakeLight = new THREE.PointLight(0xffdd88, 0, 15)
+    cakeLight.position.set(0, 5, 0)
+    scene.add(cakeLight)
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0)
+    scene.add(ambientLight)
+
     const clock = new THREE.Clock()
     let rafId = null
 
@@ -306,20 +314,20 @@ function CanvasRoot({ scrollProgress = 0 }) {
     const elapsed = clock.getElapsedTime()
     
     // --- PROGRESS VALUES --- all at top
+    // Scene 1: The Void (0% - 15%)
     const introProgress = THREE.MathUtils.clamp(
-      scrollProgressRef.current / 0.25, 0, 1
+      scrollProgressRef.current / 0.15, 0, 1
     )
+    // Scene 2: The Birth (15% - 35%)
     const scene2Progress = THREE.MathUtils.clamp(
-      (scrollProgressRef.current - 0.25) / 0.20, 0, 1
-    )
-    const scene3Progress = THREE.MathUtils.clamp(
-      (scrollProgressRef.current - 0.45) / 0.20, 0, 1
+      (scrollProgressRef.current - 0.15) / 0.20, 0, 1
     )
     const crackProgress = THREE.MathUtils.clamp(
-      (scene3Progress - 0.5) / 0.5, 0, 1
+      (scene2Progress - 0.5) / 0.5, 0, 1
     )
-    const scene4Progress = THREE.MathUtils.clamp(
-      (scrollProgressRef.current - 0.65) / 0.20, 0, 1
+    // Scene 3: The Rise (35% - 55%)
+    const scene3Progress = THREE.MathUtils.clamp(
+      (scrollProgressRef.current - 0.35) / 0.20, 0, 1
     )
 
     // --- SCENE 1: Logo particles ---
@@ -381,11 +389,11 @@ function CanvasRoot({ scrollProgress = 0 }) {
     }
     starGeometry.attributes.position.needsUpdate = true
 
-    // --- SCENE 3: Egg ---
-    camera.position.z = THREE.MathUtils.lerp(8, 3, scene3Progress)
+    // --- SCENE 2: Egg ---
+    camera.position.z = THREE.MathUtils.lerp(8, 3, scene2Progress)
 
-    eggTop.visible = scene3Progress > 0
-    eggBottom.visible = scene3Progress > 0 && crackProgress < 0.9
+    eggTop.visible = scene2Progress > 0
+    eggBottom.visible = scene2Progress > 0 && crackProgress < 0.9
 
     eggTop.position.y = THREE.MathUtils.lerp(0, 0.8, crackProgress)
     eggBottom.position.y = THREE.MathUtils.lerp(0, -0.4, crackProgress)
@@ -393,15 +401,25 @@ function CanvasRoot({ scrollProgress = 0 }) {
     eggMaterial.transparent = true
     eggMaterial.opacity = THREE.MathUtils.lerp(1, 0, crackProgress)
 
-    eggLight.intensity = THREE.MathUtils.lerp(2, 12, crackProgress)
+    // Fade out egg light during Scene 3
+    eggLight.intensity = THREE.MathUtils.lerp(
+      THREE.MathUtils.lerp(2, 12, crackProgress),
+      0,
+      scene3Progress
+    )
 
     glow.position.z = THREE.MathUtils.lerp(-5, -4, crackProgress)
     glow.scale.setScalar(THREE.MathUtils.lerp(3, 1.2, crackProgress))
+    
+    // Hide glow completely in Scene 3
+    if (scene3Progress > 0) {
+      glowMaterial.opacity = THREE.MathUtils.lerp(0.6, 0, scene3Progress)
+    }
 
-    // --- SCENE 4: Base & Middle Cake Animation ---
-    // Split the scene4 progress into two halves
-    const baseProgress = THREE.MathUtils.smoothstep(scene4Progress, 0.0, 0.5)
-    const middleProgress = THREE.MathUtils.smoothstep(scene4Progress, 0.5, 1.0)
+    // --- SCENE 3: Base & Middle Cake Animation ---
+    // Split the scene3 progress into two halves
+    const baseProgress = THREE.MathUtils.smoothstep(scene3Progress, 0.0, 0.5)
+    const middleProgress = THREE.MathUtils.smoothstep(scene3Progress, 0.5, 1.0)
 
     baseCakeMesh.visible = baseProgress > 0
     baseCakeMesh.scale.y = THREE.MathUtils.lerp(0, 1, baseProgress)
@@ -412,15 +430,19 @@ function CanvasRoot({ scrollProgress = 0 }) {
     // The middle layer sits exactly on top of the fully risen base layer
     middleCakeMesh.position.y = baseCakeHeight + (middleCakeHeight * middleCakeMesh.scale.y) / 2
 
+    // Fade in the warm cake light and global ambient light
+    cakeLight.intensity = THREE.MathUtils.lerp(0, 15, scene3Progress)
+    ambientLight.intensity = THREE.MathUtils.lerp(0, 1.5, scene3Progress)
+
     // Camera Orbit using Trigonometry
-    if (scene4Progress > 0) {
+    if (scene3Progress > 0) {
       // Start at PI/2 (which means x=0, z=radius) and orbit 180 degrees (PI)
-      const orbitAngle = (Math.PI / 2) + (scene4Progress * Math.PI)
-      const orbitRadius = THREE.MathUtils.lerp(3, 5, scene4Progress)
+      const orbitAngle = (Math.PI / 2) + (scene3Progress * Math.PI)
+      const orbitRadius = THREE.MathUtils.lerp(4.5, 7.5, scene3Progress) // Wider orbit so we don't clip!
       
       camera.position.x = Math.cos(orbitAngle) * orbitRadius
       camera.position.z = Math.sin(orbitAngle) * orbitRadius
-      camera.position.y = THREE.MathUtils.lerp(0.35, 2.5, scene4Progress)
+      camera.position.y = THREE.MathUtils.lerp(0.5, 3.5, scene3Progress) // Go higher up
       
       // Keep the lens focused on the cake base as we fly around it
       camera.lookAt(0, baseCakeMesh.position.y, 0)
@@ -471,6 +493,12 @@ animate()
       scene.remove(middleCakeMesh)
       middleGeometry.dispose()
       middleMaterial.dispose()
+
+      scene.remove(cakeLight)
+      cakeLight.dispose()
+
+      scene.remove(ambientLight)
+      ambientLight.dispose()
     }
   }, [])
 
