@@ -312,8 +312,53 @@ function CanvasRoot({ scrollProgress = 0 }) {
     
     // We inject custom GLSL code into the Standard Material before it compiles!
     frostingMaterial.onBeforeCompile = (shader) => {
-      // 1. We create a 'uniform' (a variable passed from Javascript to the GPU)
+      // 1. Create a uniform linked to Javascript
       shader.uniforms.uPourProgress = { value: 0 }
+      
+      // 2. Vertex Shader: Pass the exact world position (X, Y, Z) of every vertex to the Fragment Shader
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <common>',
+        `
+        #include <common>
+        varying vec3 vWorldPos;
+        `
+      )
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <worldpos_vertex>',
+        `
+        #include <worldpos_vertex>
+        vWorldPos = (modelMatrix * vec4(transformed, 1.0)).xyz;
+        `
+      )
+
+      // 3. Fragment Shader: The Magic "Discard" Logic
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <common>',
+        `
+        #include <common>
+        uniform float uPourProgress;
+        varying vec3 vWorldPos;
+        `
+      )
+
+      shader.fragmentShader = shader.fragmentShader.replace(
+        '#include <dithering_fragment>',
+        `
+        #include <dithering_fragment>
+        
+        // Calculate the angle around the cake to create uneven, wavy drips
+        float angle = atan(vWorldPos.z, vWorldPos.x);
+        float dripOffset = sin(angle * 12.0) * 0.1 + sin(angle * 25.0) * 0.05;
+        
+        // Start high up (3.0) and move down to the bottom of the cake (1.5) as progress increases
+        float currentHeightThreshold = 3.0 - (uPourProgress * 1.5);
+        
+        // THE MELT RULE: If a pixel is LOWER than our falling threshold, throw it away!
+        if (vWorldPos.y < currentHeightThreshold + dripOffset) {
+          discard;
+        }
+        `
+      )
       
       // Store the shader reference so we can update the uniform every frame
       frostingMaterial.userData.shader = shader
