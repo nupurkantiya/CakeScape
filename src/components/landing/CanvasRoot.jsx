@@ -284,6 +284,21 @@ function CanvasRoot({ scrollProgress = 0 }) {
     baseCakeMesh.position.y = 0
     scene.add(baseCakeMesh)
 
+    // --- SCENE 4: MIDDLE CAKE LAYER ---
+    const middleCakeRadius = 1.7
+    const middleCakeHeight = 1.2
+    const middleGeometry = new THREE.CylinderGeometry(middleCakeRadius, middleCakeRadius, middleCakeHeight, 32)
+    const middleMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0xf5f5dc, // cream color
+      roughness: 0.7
+    })
+    const middleCakeMesh = new THREE.Mesh(middleGeometry, middleMaterial)
+    
+    // Initial state: hidden
+    middleCakeMesh.scale.y = 0
+    middleCakeMesh.position.y = 0
+    scene.add(middleCakeMesh)
+
     const clock = new THREE.Clock()
     let rafId = null
 
@@ -383,11 +398,19 @@ function CanvasRoot({ scrollProgress = 0 }) {
     glow.position.z = THREE.MathUtils.lerp(-5, -4, crackProgress)
     glow.scale.setScalar(THREE.MathUtils.lerp(3, 1.2, crackProgress))
 
-    // --- SCENE 4: Base Cake Animation ---
-    baseCakeMesh.visible = scene4Progress > 0
-    baseCakeMesh.scale.y = THREE.MathUtils.lerp(0, 1, scene4Progress)
-    // The scale and shift trick: position.y is exactly half the total height
+    // --- SCENE 4: Base & Middle Cake Animation ---
+    // Split the scene4 progress into two halves
+    const baseProgress = THREE.MathUtils.smoothstep(scene4Progress, 0.0, 0.5)
+    const middleProgress = THREE.MathUtils.smoothstep(scene4Progress, 0.5, 1.0)
+
+    baseCakeMesh.visible = baseProgress > 0
+    baseCakeMesh.scale.y = THREE.MathUtils.lerp(0, 1, baseProgress)
     baseCakeMesh.position.y = (baseCakeHeight * baseCakeMesh.scale.y) / 2
+
+    middleCakeMesh.visible = middleProgress > 0
+    middleCakeMesh.scale.y = THREE.MathUtils.lerp(0, 1, middleProgress)
+    // The middle layer sits exactly on top of the fully risen base layer
+    middleCakeMesh.position.y = baseCakeHeight + (middleCakeHeight * middleCakeMesh.scale.y) / 2
 
     // Camera Orbit using Trigonometry
     if (scene4Progress > 0) {
@@ -444,6 +467,10 @@ animate()
       scene.remove(baseCakeMesh)
       baseGeometry.dispose()
       baseMaterial.dispose()
+
+      scene.remove(middleCakeMesh)
+      middleGeometry.dispose()
+      middleMaterial.dispose()
     }
   }, [])
 
