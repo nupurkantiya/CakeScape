@@ -299,6 +299,32 @@ function CanvasRoot({ scrollProgress = 0 }) {
     middleCakeMesh.position.y = 0
     scene.add(middleCakeMesh)
 
+    // --- SCENE 4: FROSTING LAYER ---
+    const frostingRadius = 1.72 // Slightly wider than middle cake (1.7)
+    const frostingHeight = 1.25 // Covers the middle cake
+    const frostingGeometry = new THREE.CylinderGeometry(frostingRadius, frostingRadius, frostingHeight, 32)
+    const frostingMaterial = new THREE.MeshStandardMaterial({ 
+      color: 0xffb6c1, // Light pink frosting
+      roughness: 0.2,  // Slightly shiny
+      transparent: true,
+      depthWrite: false // Prevents weird transparency sorting issues
+    })
+    
+    // We inject custom GLSL code into the Standard Material before it compiles!
+    frostingMaterial.onBeforeCompile = (shader) => {
+      // 1. We create a 'uniform' (a variable passed from Javascript to the GPU)
+      shader.uniforms.uPourProgress = { value: 0 }
+      
+      // Store the shader reference so we can update the uniform every frame
+      frostingMaterial.userData.shader = shader
+    }
+
+    const frostingMesh = new THREE.Mesh(frostingGeometry, frostingMaterial)
+    // Sits exactly over the fully risen middle layer
+    frostingMesh.position.y = 1.5 + (1.2 / 2) 
+    frostingMesh.visible = false
+    scene.add(frostingMesh)
+
     // --- SCENE 4: CAKE LIGHT ---
     const cakeLight = new THREE.PointLight(0xffdd88, 0, 15)
     cakeLight.position.set(0, 5, 0)
@@ -328,6 +354,10 @@ function CanvasRoot({ scrollProgress = 0 }) {
     // Scene 3: The Rise (35% - 55%)
     const scene3Progress = THREE.MathUtils.clamp(
       (scrollProgressRef.current - 0.35) / 0.20, 0, 1
+    )
+    // Scene 4: The Pour (55% - 70%)
+    const scene4Progress = THREE.MathUtils.clamp(
+      (scrollProgressRef.current - 0.55) / 0.15, 0, 1
     )
 
     // --- SCENE 1: Logo particles ---
@@ -449,8 +479,15 @@ function CanvasRoot({ scrollProgress = 0 }) {
     } else {
       camera.position.x = 0
       camera.position.y = 0.35
-      // camera.position.z is handled by scene3Progress above
+      // camera.position.z is handled by scene2Progress above
       camera.lookAt(0, 0, 0)
+    }
+
+    // --- SCENE 4: The Pour (Frosting) ---
+    frostingMesh.visible = scene4Progress > 0
+    if (frostingMaterial.userData.shader) {
+      // Send the scroll progress directly to the GPU every single frame
+      frostingMaterial.userData.shader.uniforms.uPourProgress.value = scene4Progress
     }
 
     // --- RENDER ---
@@ -493,6 +530,10 @@ animate()
       scene.remove(middleCakeMesh)
       middleGeometry.dispose()
       middleMaterial.dispose()
+
+      scene.remove(frostingMesh)
+      frostingGeometry.dispose()
+      frostingMaterial.dispose()
 
       scene.remove(cakeLight)
       cakeLight.dispose()
