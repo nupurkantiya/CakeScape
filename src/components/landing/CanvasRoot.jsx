@@ -454,6 +454,47 @@ function CanvasRoot({ scrollProgress = 0 }) {
     const bakeryColor = new THREE.Color(0x1a1a1a) // A warm, dark studio grey instead of pitch black
     scene.background = voidColor.clone()
 
+    // --- SCENE 5: BOKEH PARTICLES (Depth of Field) ---
+    const bokehCount = 150
+    const bokehGeo = new THREE.BufferGeometry()
+    const bokehPos = new Float32Array(bokehCount * 3)
+    
+    for (let i = 0; i < bokehCount; i++) {
+      // Scatter them widely in the background
+      bokehPos[i * 3] = (Math.random() - 0.5) * 40 // X range: -20 to 20
+      bokehPos[i * 3 + 1] = (Math.random() - 0.5) * 20 // Y range: -10 to 10
+      bokehPos[i * 3 + 2] = -5 - Math.random() * 15 // Z range: -5 to -20 (behind everything)
+    }
+    bokehGeo.setAttribute("position", new THREE.BufferAttribute(bokehPos, 3))
+    
+    // Create a soft glowing circle texture using an HTML Canvas (so we don't need to load external images!)
+    const bokehCanvas = document.createElement("canvas")
+    bokehCanvas.width = 64
+    bokehCanvas.height = 64
+    const bokehCtx = bokehCanvas.getContext("2d")
+    const bokehGradient = bokehCtx.createRadialGradient(32, 32, 0, 32, 32, 32)
+    bokehGradient.addColorStop(0, "rgba(255, 255, 255, 1)")
+    bokehGradient.addColorStop(0.2, "rgba(255, 255, 255, 0.8)")
+    bokehGradient.addColorStop(0.5, "rgba(255, 255, 255, 0.2)")
+    bokehGradient.addColorStop(1, "rgba(255, 255, 255, 0)")
+    bokehCtx.fillStyle = bokehGradient
+    bokehCtx.fillRect(0, 0, 64, 64)
+    const bokehTexture = new THREE.CanvasTexture(bokehCanvas)
+
+    const bokehMat = new THREE.PointsMaterial({
+      size: 2.0,
+      map: bokehTexture,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending, // Makes them glow brighter when they overlap!
+      color: 0xffddaa // Warm golden studio color
+    })
+    
+    const bokehParticles = new THREE.Points(bokehGeo, bokehMat)
+    bokehParticles.visible = false
+    scene.add(bokehParticles)
+
     // --- SCENE 4: CAKE LIGHT ---
     const cakeLight = new THREE.PointLight(0xffdd88, 0, 15)
     cakeLight.position.set(0, 5, 0)
@@ -661,6 +702,8 @@ function CanvasRoot({ scrollProgress = 0 }) {
 
     // --- SCENE 5: The Reveal ---
     pedestalMesh.visible = scene5Progress > 0
+    bokehParticles.visible = scene5Progress > 0
+    
     if (scene5Progress > 0) {
       // Fade in the pedestal
       pedestalMat.opacity = scene5Progress
@@ -683,6 +726,11 @@ function CanvasRoot({ scrollProgress = 0 }) {
       camera.position.y = THREE.MathUtils.lerp(3.5, 5, scene5Progress)
       
       camera.lookAt(0, 1.5, 0)
+      
+      // Animate Bokeh
+      bokehMat.opacity = THREE.MathUtils.lerp(0, 0.6, scene5Progress)
+      bokehParticles.position.y = elapsed * 0.2 // Slow floating upwards
+      bokehParticles.position.x = Math.sin(elapsed * 0.1) * 2 // Gentle swaying
     }
 
     // --- RENDER ---
@@ -736,6 +784,11 @@ function CanvasRoot({ scrollProgress = 0 }) {
       scene.remove(pedestalMesh)
       pedestalGeo.dispose()
       pedestalMat.dispose()
+
+      scene.remove(bokehParticles)
+      bokehGeo.dispose()
+      bokehMat.dispose()
+      bokehTexture.dispose()
 
       scene.remove(studioLight1)
       studioLight1.dispose()
