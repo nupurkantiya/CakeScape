@@ -372,7 +372,7 @@ function CanvasRoot({ scrollProgress = 0 }) {
 
     // --- SCENE 4: INSTANCED SPRINKLES ---
     const sprinkleCount = 150
-    const sprinkleGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.1, 8)
+    const sprinkleGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.15, 8)
     const sprinkleMat = new THREE.MeshStandardMaterial({ 
       color: 0xffffff,
       roughness: 0.4
@@ -397,8 +397,8 @@ function CanvasRoot({ scrollProgress = 0 }) {
       const targetX = Math.cos(angle) * radius
       const targetZ = Math.sin(angle) * radius
       
-      // Top of the frosting is ~2.7
-      const targetY = 2.7 + Math.random() * 0.1
+      // Top of the frosting is ~2.725, so we sit them safely on top!
+      const targetY = 2.78 + Math.random() * 0.15
       
       // Store random starting positions way up high (e.g. y = 10)
       const startY = 8 + Math.random() * 4
@@ -419,6 +419,9 @@ function CanvasRoot({ scrollProgress = 0 }) {
       colorObj.setHex(sprinkleColors[Math.floor(Math.random() * sprinkleColors.length)])
       sprinkleMesh.setColorAt(i, colorObj)
     }
+    
+    // Crucial for InstancedMesh colors to show up if initialized before first render!
+    sprinkleMesh.instanceColor.needsUpdate = true
     
     // Hidden initially
     sprinkleMesh.visible = false
