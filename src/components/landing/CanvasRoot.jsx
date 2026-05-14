@@ -370,6 +370,60 @@ function CanvasRoot({ scrollProgress = 0 }) {
     frostingMesh.visible = false
     scene.add(frostingMesh)
 
+    // --- SCENE 4: INSTANCED SPRINKLES ---
+    const sprinkleCount = 150
+    const sprinkleGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.1, 8)
+    const sprinkleMat = new THREE.MeshStandardMaterial({ 
+      color: 0xffffff,
+      roughness: 0.4
+    })
+    // InstancedMesh allows us to render 150 sprinkles in a SINGLE draw call!
+    const sprinkleMesh = new THREE.InstancedMesh(sprinkleGeo, sprinkleMat, sprinkleCount)
+    
+    // We need a "dummy" object to help calculate the math for each sprinkle
+    const dummy = new THREE.Object3D()
+    
+    // We'll store random target positions and rotations for each sprinkle
+    const sprinkleData = []
+    
+    // A palette of colorful sprinkles!
+    const sprinkleColors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff, 0x00ffff]
+    const colorObj = new THREE.Color()
+
+    for (let i = 0; i < sprinkleCount; i++) {
+      // Random position around the top of the cake
+      const angle = Math.random() * Math.PI * 2
+      const radius = Math.random() * 1.6 // Within the cake radius
+      const targetX = Math.cos(angle) * radius
+      const targetZ = Math.sin(angle) * radius
+      
+      // Top of the frosting is ~2.7
+      const targetY = 2.7 + Math.random() * 0.1
+      
+      // Store random starting positions way up high (e.g. y = 10)
+      const startY = 8 + Math.random() * 4
+      
+      // Random rotations
+      const rotX = Math.random() * Math.PI
+      const rotY = Math.random() * Math.PI
+      const rotZ = Math.random() * Math.PI
+      
+      sprinkleData.push({
+        targetX, targetY, targetZ,
+        startY,
+        rotX, rotY, rotZ,
+        delay: Math.random() * 0.5 // staggered falling
+      })
+      
+      // Assign random color to this instance
+      colorObj.setHex(sprinkleColors[Math.floor(Math.random() * sprinkleColors.length)])
+      sprinkleMesh.setColorAt(i, colorObj)
+    }
+    
+    // Hidden initially
+    sprinkleMesh.visible = false
+    scene.add(sprinkleMesh)
+
     // --- SCENE 4: CAKE LIGHT ---
     const cakeLight = new THREE.PointLight(0xffdd88, 0, 15)
     cakeLight.position.set(0, 5, 0)
@@ -528,11 +582,47 @@ function CanvasRoot({ scrollProgress = 0 }) {
       camera.lookAt(0, 0, 0)
     }
 
-    // --- SCENE 4: The Pour (Frosting) ---
+    // --- SCENE 4: The Pour (Frosting & Sprinkles) ---
     frostingMesh.visible = scene4Progress > 0
     if (frostingMaterial.userData.shader) {
       // Send the scroll progress directly to the GPU every single frame
       frostingMaterial.userData.shader.uniforms.uPourProgress.value = scene4Progress
+    }
+
+    sprinkleMesh.visible = scene4Progress > 0
+    if (scene4Progress > 0) {
+      for (let i = 0; i < sprinkleCount; i++) {
+        const data = sprinkleData[i]
+        
+        // Calculate an individual progress for each sprinkle to make them fall at different times
+        // We use MathUtils.clamp to ensure it stays between 0 and 1
+        const individualProgress = THREE.MathUtils.clamp(
+          (scene4Progress - data.delay) / 0.5, 
+          0, 1
+        )
+        
+        // Use an easing function so they accelerate as they fall (gravity!)
+        // cubic in: individualProgress * individualProgress * individualProgress
+        const easeIn = individualProgress * individualProgress * individualProgress
+        
+        // Animate position from high up in the sky down to the cake
+        dummy.position.set(
+          data.targetX,
+          THREE.MathUtils.lerp(data.startY, data.targetY, easeIn),
+          data.targetZ
+        )
+        
+        // Spin wildly as they fall, then settle into final rotation
+        dummy.rotation.set(
+          THREE.MathUtils.lerp(data.rotX + elapsed * 5, data.rotX, individualProgress),
+          THREE.MathUtils.lerp(data.rotY + elapsed * 5, data.rotY, individualProgress),
+          THREE.MathUtils.lerp(data.rotZ + elapsed * 5, data.rotZ, individualProgress)
+        )
+        
+        dummy.updateMatrix()
+        sprinkleMesh.setMatrixAt(i, dummy.matrix)
+      }
+      sprinkleMesh.instanceMatrix.needsUpdate = true
     }
 
     // --- RENDER ---
@@ -540,8 +630,7 @@ function CanvasRoot({ scrollProgress = 0 }) {
     rafId = requestAnimationFrame(animate)
   }
 
-animate()
-    animate()
+  animate()
 
     return () => {
       if (rafId) {
@@ -579,6 +668,10 @@ animate()
       scene.remove(frostingMesh)
       frostingGeometry.dispose()
       frostingMaterial.dispose()
+
+      scene.remove(sprinkleMesh)
+      sprinkleGeo.dispose()
+      sprinkleMat.dispose()
 
       scene.remove(cakeLight)
       cakeLight.dispose()
