@@ -427,6 +427,33 @@ function CanvasRoot({ scrollProgress = 0 }) {
     sprinkleMesh.visible = false
     scene.add(sprinkleMesh)
 
+    // --- SCENE 5: THE REVEAL (Pedestal & Studio) ---
+    const pedestalGeo = new THREE.CylinderGeometry(3.5, 4, 0.5, 64)
+    const pedestalMat = new THREE.MeshStandardMaterial({
+      color: 0xffffff,
+      roughness: 0.1,
+      metalness: 0.1, // Gives it a subtle premium sheen
+      transparent: true,
+      opacity: 0
+    })
+    const pedestalMesh = new THREE.Mesh(pedestalGeo, pedestalMat)
+    pedestalMesh.position.y = -0.25 // Sits perfectly flat on the floor underneath the cake
+    pedestalMesh.visible = false
+    scene.add(pedestalMesh)
+
+    const studioLight1 = new THREE.DirectionalLight(0xffffff, 0)
+    studioLight1.position.set(5, 10, 5)
+    scene.add(studioLight1)
+
+    const studioLight2 = new THREE.DirectionalLight(0xffeedd, 0)
+    studioLight2.position.set(-5, 5, -5)
+    scene.add(studioLight2)
+    
+    // Background colors for the transition
+    const voidColor = new THREE.Color(0x000000)
+    const bakeryColor = new THREE.Color(0x1a1a1a) // A warm, dark studio grey instead of pitch black
+    scene.background = voidColor.clone()
+
     // --- SCENE 4: CAKE LIGHT ---
     const cakeLight = new THREE.PointLight(0xffdd88, 0, 15)
     cakeLight.position.set(0, 5, 0)
@@ -460,6 +487,10 @@ function CanvasRoot({ scrollProgress = 0 }) {
     // Scene 4: The Pour (55% - 70%)
     const scene4Progress = THREE.MathUtils.clamp(
       (scrollProgressRef.current - 0.55) / 0.15, 0, 1
+    )
+    // Scene 5: The Reveal (70% - 85%)
+    const scene5Progress = THREE.MathUtils.clamp(
+      (scrollProgressRef.current - 0.70) / 0.15, 0, 1
     )
 
     // --- SCENE 1: Logo particles ---
@@ -628,6 +659,32 @@ function CanvasRoot({ scrollProgress = 0 }) {
       sprinkleMesh.instanceMatrix.needsUpdate = true
     }
 
+    // --- SCENE 5: The Reveal ---
+    pedestalMesh.visible = scene5Progress > 0
+    if (scene5Progress > 0) {
+      // Fade in the pedestal
+      pedestalMat.opacity = scene5Progress
+      
+      // Turn on the studio lights
+      studioLight1.intensity = THREE.MathUtils.lerp(0, 4, scene5Progress)
+      studioLight2.intensity = THREE.MathUtils.lerp(0, 2, scene5Progress)
+      
+      // Transition the background color
+      scene.background.lerpColors(voidColor, bakeryColor, scene5Progress)
+      
+      // Camera pulls back DRAMATICALLY and cake starts rotating
+      // We continue the orbit angle from where Scene 3 left off (which was PI/2 + PI)
+      const baseAngle = (Math.PI / 2) + Math.PI
+      const rotateAngle = baseAngle + (scene5Progress * Math.PI * 2) // Do a full 360 spin!
+      const pullBackRadius = THREE.MathUtils.lerp(7.5, 14, scene5Progress)
+      
+      camera.position.x = Math.cos(rotateAngle) * pullBackRadius
+      camera.position.z = Math.sin(rotateAngle) * pullBackRadius
+      camera.position.y = THREE.MathUtils.lerp(3.5, 5, scene5Progress)
+      
+      camera.lookAt(0, 1.5, 0)
+    }
+
     // --- RENDER ---
     renderer.render(scene, camera)
     rafId = requestAnimationFrame(animate)
@@ -675,6 +732,16 @@ function CanvasRoot({ scrollProgress = 0 }) {
       scene.remove(sprinkleMesh)
       sprinkleGeo.dispose()
       sprinkleMat.dispose()
+
+      scene.remove(pedestalMesh)
+      pedestalGeo.dispose()
+      pedestalMat.dispose()
+
+      scene.remove(studioLight1)
+      studioLight1.dispose()
+      
+      scene.remove(studioLight2)
+      studioLight2.dispose()
 
       scene.remove(cakeLight)
       cakeLight.dispose()
