@@ -55,10 +55,12 @@ function LandingExperience() {
 
   const scene6TextStyle = {
     opacity:
-      scrollProgress > 0.85 && scrollProgress <= 1.0
+      scrollProgress > 0.85
         ? Math.min((scrollProgress - 0.85) / 0.08, 1)
         : 0,
     transition: "opacity 0.3s ease",
+    pointerEvents: "none",
+    zIndex: 100
   }
 
 
@@ -96,16 +98,36 @@ function LandingExperience() {
       
       <footer style={{
         position: 'fixed',
-        bottom: '30px',
+        bottom: '40px',
         width: '100%',
-        textAlign: 'center',
-        color: 'rgba(255,255,255,0.4)',
-        fontFamily: '"Inter", sans-serif',
-        fontSize: '0.9rem',
-        letterSpacing: '1px',
+        display: 'flex',
+        justifyContent: 'center',
         ...scene6TextStyle
       }}>
-        <p>Select your journey to begin</p>
+        <div style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '12px',
+          padding: '12px 28px',
+          background: 'rgba(255, 255, 255, 0.08)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          borderRadius: '50px',
+          backdropFilter: 'blur(10px)',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
+          color: 'white',
+          fontFamily: '"Inter", sans-serif',
+          fontSize: '0.95rem',
+          letterSpacing: '1px',
+          cursor: 'pointer',
+          transition: 'transform 0.3s'
+        }}
+        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
+        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+        >
+          <span style={{ fontSize: '1.2rem' }}>✨</span>
+          <span style={{ fontWeight: 500 }}>Select your journey to begin</span>
+          <span style={{ fontSize: '1.2rem' }}>✨</span>
+        </div>
       </footer>
     </>
   )
