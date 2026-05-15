@@ -55,7 +55,7 @@ function LandingExperience() {
 
   const scene6TextStyle = {
     opacity:
-      scrollProgress > 0.85 && scrollProgress < 1.0
+      scrollProgress > 0.85 && scrollProgress <= 1.0
         ? Math.min((scrollProgress - 0.85) / 0.08, 1)
         : 0,
     transition: "opacity 0.3s ease",
@@ -93,6 +93,20 @@ function LandingExperience() {
       <div className="scene6-text" style={scene6TextStyle}>
         <p>Awaits.</p>
       </div>
+      
+      <footer style={{
+        position: 'fixed',
+        bottom: '30px',
+        width: '100%',
+        textAlign: 'center',
+        color: 'rgba(255,255,255,0.4)',
+        fontFamily: '"Inter", sans-serif',
+        fontSize: '0.9rem',
+        letterSpacing: '1px',
+        ...scene6TextStyle
+      }}>
+        <p>Select your journey to begin</p>
+      </footer>
     </>
   )
 }
