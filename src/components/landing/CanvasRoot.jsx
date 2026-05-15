@@ -609,13 +609,13 @@ function CanvasRoot({ scrollProgress = 0 }) {
     const portalMatOrder = new THREE.MeshStandardMaterial({ color: 0x88ff44, emissive: 0x224411, roughness: 0.1, metalness: 0.8, transparent: true, opacity: 0, wireframe: true })
 
     const portalExplore = new THREE.Mesh(portalGeo, portalMatExplore)
-    portalExplore.position.set(-3.5, 1.5, 0)
+    portalExplore.position.set(-5.5, 1.5, 0)
 
     const portalBuild = new THREE.Mesh(portalGeo, portalMatBuild)
-    portalBuild.position.set(0, 1.5, -2) // push back a bit so they form an arc
+    portalBuild.position.set(0, 1.5, -3) // push back further into the screen to increase the 3D arc effect
 
     const portalOrder = new THREE.Mesh(portalGeo, portalMatOrder)
-    portalOrder.position.set(3.5, 1.5, 0)
+    portalOrder.position.set(5.5, 1.5, 0)
 
     const portals = new THREE.Group()
     portals.add(portalExplore, portalBuild, portalOrder)
