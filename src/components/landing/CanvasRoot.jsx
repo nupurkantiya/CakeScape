@@ -623,10 +623,19 @@ function CanvasRoot({ scrollProgress = 0 }) {
     scene.add(portals)
     
     // HTML Labels for Portals
+    const makeBadge = (title, subtitle, icon) => `
+      <div style="background: rgba(20, 20, 25, 0.4); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.15); padding: 12px 28px; border-radius: 50px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.05); pointer-events: none;">
+        <span style="font-size: 1.1rem; font-weight: 800; letter-spacing: 3px; color: #fff;">${title}</span>
+        <span style="font-size: 0.75rem; color: rgba(255,255,255,0.7); letter-spacing: 1px; margin-top: 6px; display: flex; align-items: center; gap: 8px; font-weight: 500;">
+          ${subtitle} <span style="font-size: 1.2rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">${icon}</span>
+        </span>
+      </div>
+    `
+
     const labels = {
-      explore: { el: document.createElement('div'), html: 'EXPLORE<br><span style="font-size:0.8rem; opacity:0.8; font-weight:normal; letter-spacing:1px; line-height:1.2;">MENU<br>🎂</span>', mesh: portalExplore },
-      build: { el: document.createElement('div'), html: 'BUILD<br><span style="font-size:0.8rem; opacity:0.8; font-weight:normal; letter-spacing:1px; line-height:1.2;">YOUR<br>CAKE</span>', mesh: portalBuild },
-      order: { el: document.createElement('div'), html: 'ORDER<br><span style="font-size:0.8rem; opacity:0.8; font-weight:normal; letter-spacing:1px; line-height:1.2;">NOW<br>🛒</span>', mesh: portalOrder }
+      explore: { el: document.createElement('div'), html: makeBadge('EXPLORE', 'MENU', '🎂'), mesh: portalExplore },
+      build: { el: document.createElement('div'), html: makeBadge('BUILD', 'YOUR CAKE', '✨'), mesh: portalBuild },
+      order: { el: document.createElement('div'), html: makeBadge('ORDER', 'NOW', '🛒'), mesh: portalOrder }
     }
     
     Object.values(labels).forEach(({ el, html }) => {
