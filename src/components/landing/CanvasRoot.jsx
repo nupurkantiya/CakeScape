@@ -496,7 +496,7 @@ function CanvasRoot({ scrollProgress = 0 }) {
     scene.add(bokehParticles)
 
     // --- SCENE 6: CAKE SHATTER PARTICLES ---
-    const shatterCount = 5000
+    const shatterCount = 6500 // Added 1500 more particles for the pedestal!
     const shatterGeo = new THREE.BufferGeometry()
     const shatterPos = new Float32Array(shatterCount * 3)
     const shatterTarget = new Float32Array(shatterCount * 3)
@@ -505,12 +505,24 @@ function CanvasRoot({ scrollProgress = 0 }) {
     const colorBrown = new THREE.Color(0x3e2723)
     const colorWhite = new THREE.Color(0xf5e6c8)
     const colorPink  = new THREE.Color(0xffb6c1)
+    const colorPedestal = new THREE.Color(0xffffff)
     
     for(let i=0; i<shatterCount; i++) {
-      // Random position roughly inside the cake shape
-      const radius = Math.random() * 1.72
-      const angle = Math.random() * Math.PI * 2
-      const height = Math.random() * 2.8 // cake height
+      const isPedestal = i >= 5000 // The last 1500 particles are the pedestal
+      
+      let radius, angle, height
+      
+      if (isPedestal) {
+        // Pedestal shape (radius 3.5, height 0.5, y=-0.25 to 0.25)
+        radius = Math.random() * 3.5
+        angle = Math.random() * Math.PI * 2
+        height = (Math.random() - 0.5) * 0.5
+      } else {
+        // Random position roughly inside the cake shape
+        radius = Math.random() * 1.72
+        angle = Math.random() * Math.PI * 2
+        height = Math.random() * 2.8 // cake height
+      }
       
       const x = Math.cos(angle) * radius
       const y = height
@@ -528,12 +540,16 @@ function CanvasRoot({ scrollProgress = 0 }) {
       
       // Color based on height to match the cake layers!
       let c = colorBrown
-      if (height > 1.5) c = colorWhite
-      if (height > 2.5) {
-        c = colorPink
-        // Sprinkle crumbs!
-        if (Math.random() > 0.8) {
-          c = new THREE.Color(sprinkleColors[Math.floor(Math.random() * sprinkleColors.length)])
+      if (isPedestal) {
+        c = colorPedestal
+      } else {
+        if (height > 1.5) c = colorWhite
+        if (height > 2.5) {
+          c = colorPink
+          // Sprinkle crumbs!
+          if (Math.random() > 0.8) {
+            c = new THREE.Color(sprinkleColors[Math.floor(Math.random() * sprinkleColors.length)])
+          }
         }
       }
       
@@ -586,7 +602,64 @@ function CanvasRoot({ scrollProgress = 0 }) {
     shatterMesh.visible = false
     scene.add(shatterMesh)
 
-    // --- SCENE 4: CAKE LIGHT ---
+    // --- SCENE 6: PORTALS & RAYCASTING ---
+    const portalGeo = new THREE.IcosahedronGeometry(1.2, 1) // Low poly orb
+    const portalMatExplore = new THREE.MeshStandardMaterial({ color: 0x4488ff, emissive: 0x112244, roughness: 0.1, metalness: 0.8, transparent: true, opacity: 0, wireframe: true })
+    const portalMatBuild = new THREE.MeshStandardMaterial({ color: 0xff4488, emissive: 0x441122, roughness: 0.1, metalness: 0.8, transparent: true, opacity: 0, wireframe: true })
+    const portalMatOrder = new THREE.MeshStandardMaterial({ color: 0x88ff44, emissive: 0x224411, roughness: 0.1, metalness: 0.8, transparent: true, opacity: 0, wireframe: true })
+
+    const portalExplore = new THREE.Mesh(portalGeo, portalMatExplore)
+    portalExplore.position.set(-4, 3, 0)
+
+    const portalBuild = new THREE.Mesh(portalGeo, portalMatBuild)
+    portalBuild.position.set(0, 4.5, -3) // push back a bit so they form an arc
+
+    const portalOrder = new THREE.Mesh(portalGeo, portalMatOrder)
+    portalOrder.position.set(4, 3, 0)
+
+    const portals = new THREE.Group()
+    portals.add(portalExplore, portalBuild, portalOrder)
+    portals.visible = false
+    scene.add(portals)
+    
+    // HTML Labels for Portals
+    const labels = {
+      explore: { el: document.createElement('div'), html: 'EXPLORE<br><span style="font-size:0.8rem; opacity:0.8; font-weight:normal; letter-spacing:1px;">MENU 🎂</span>', mesh: portalExplore },
+      build: { el: document.createElement('div'), html: 'BUILD<br><span style="font-size:0.8rem; opacity:0.8; font-weight:normal; letter-spacing:1px;">YOUR CAKE</span>', mesh: portalBuild },
+      order: { el: document.createElement('div'), html: 'ORDER<br><span style="font-size:0.8rem; opacity:0.8; font-weight:normal; letter-spacing:1px;">NOW 🛒</span>', mesh: portalOrder }
+    }
+    
+    Object.values(labels).forEach(({ el, html }) => {
+      el.innerHTML = html
+      el.style.position = 'absolute'
+      el.style.color = 'white'
+      el.style.fontFamily = '"Inter", sans-serif'
+      el.style.fontWeight = 'bold'
+      el.style.fontSize = '1.2rem'
+      el.style.textAlign = 'center'
+      el.style.lineHeight = '1.5'
+      el.style.pointerEvents = 'none' // Important: ignore mouse so raycaster works!
+      el.style.transform = 'translate(-50%, -50%)'
+      el.style.opacity = '0'
+      el.style.transition = 'opacity 0.3s, transform 0.2s'
+      el.style.textShadow = '0 2px 10px rgba(0,0,0,0.8)'
+      el.style.letterSpacing = '2px'
+      mountRef.current.appendChild(el)
+    })
+
+    // Raycaster for Hover detection
+    const raycaster = new THREE.Raycaster()
+    const mouse = new THREE.Vector2(-2, -2) // Default off-screen
+    let hoveredPortal = null
+
+    const onMouseMove = (event) => {
+      // Normalize mouse coordinates (-1 to +1)
+      mouse.x = (event.clientX / window.innerWidth) * 2 - 1
+      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
+    }
+    window.addEventListener('mousemove', onMouseMove)
+
+    // --- CAKE LIGHT ---
     const cakeLight = new THREE.PointLight(0xffdd88, 0, 15)
     cakeLight.position.set(0, 5, 0)
     scene.add(cakeLight)
@@ -808,7 +881,12 @@ function CanvasRoot({ scrollProgress = 0 }) {
     }
 
     // --- SCENE 5: The Reveal ---
-    pedestalMesh.visible = scene5Progress > 0
+    if (scene6Progress > 0) {
+      pedestalMesh.visible = false
+    } else {
+      pedestalMesh.visible = scene5Progress > 0
+    }
+    
     bokehParticles.visible = scene5Progress > 0
     
     if (scene5Progress > 0) {
@@ -840,10 +918,70 @@ function CanvasRoot({ scrollProgress = 0 }) {
       bokehParticles.position.x = Math.sin(elapsed * 0.1) * 2 // Gentle swaying
     }
 
-    // --- SCENE 6: The Shatter ---
+    // --- SCENE 6: The Shatter & Portals ---
     shatterMesh.visible = scene6Progress > 0
+    portals.visible = scene6Progress > 0
+    
     if (scene6Progress > 0) {
       shatterMat.uniforms.uShatterProgress.value = scene6Progress
+      
+      const portalOpacity = THREE.MathUtils.smoothstep(scene6Progress, 0.5, 1.0)
+      portalMatExplore.opacity = portalOpacity
+      portalMatBuild.opacity = portalOpacity
+      portalMatOrder.opacity = portalOpacity
+      
+      // Floating animation
+      portalExplore.position.y = 3 + Math.sin(elapsed * 2) * 0.3
+      portalBuild.position.y = 4.5 + Math.sin(elapsed * 2.2) * 0.3
+      portalOrder.position.y = 3 + Math.sin(elapsed * 1.8) * 0.3
+      
+      // 3D to 2D Projection for HTML Labels
+      Object.values(labels).forEach(({ el, mesh }) => {
+        const tempV = new THREE.Vector3()
+        mesh.getWorldPosition(tempV)
+        tempV.project(camera) // Projects 3D world pos to normalized device coordinates (-1 to 1)
+        
+        const x = (tempV.x * 0.5 + 0.5) * window.innerWidth
+        const y = (tempV.y * -0.5 + 0.5) * window.innerHeight
+        
+        el.style.left = `${x}px`
+        el.style.top = `${y}px`
+        el.style.opacity = portalOpacity
+        
+        if (hoveredPortal === mesh) {
+          el.style.transform = 'translate(-50%, -50%) scale(1.3)'
+          el.style.color = '#ffdd88'
+        } else {
+          el.style.transform = 'translate(-50%, -50%) scale(1)'
+          el.style.color = 'white'
+        }
+      })
+      
+      // Raycasting
+      raycaster.setFromCamera(mouse, camera)
+      const intersects = raycaster.intersectObjects(portals.children)
+      
+      if (intersects.length > 0) {
+        if (hoveredPortal !== intersects[0].object) {
+          hoveredPortal = intersects[0].object
+          document.body.style.cursor = 'pointer'
+        }
+        hoveredPortal.scale.lerp(new THREE.Vector3(1.2, 1.2, 1.2), 0.1)
+      } else {
+        if (hoveredPortal) {
+          document.body.style.cursor = 'default'
+          hoveredPortal = null
+        }
+      }
+      
+      portals.children.forEach(p => {
+        if (p !== hoveredPortal) p.scale.lerp(new THREE.Vector3(1, 1, 1), 0.1)
+      })
+      
+    } else {
+      document.body.style.cursor = 'default'
+      hoveredPortal = null
+      Object.values(labels).forEach(({ el }) => el.style.opacity = '0')
     }
 
     // --- RENDER ---
@@ -906,6 +1044,20 @@ function CanvasRoot({ scrollProgress = 0 }) {
       scene.remove(shatterMesh)
       shatterGeo.dispose()
       shatterMat.dispose()
+
+      scene.remove(portals)
+      portalGeo.dispose()
+      portalMatExplore.dispose()
+      portalMatBuild.dispose()
+      portalMatOrder.dispose()
+
+      Object.values(labels).forEach(({ el }) => {
+        if (mountRef.current && mountRef.current.contains(el)) {
+          mountRef.current.removeChild(el)
+        }
+      })
+      window.removeEventListener('mousemove', onMouseMove)
+      document.body.style.cursor = 'default'
 
       scene.remove(studioLight1)
       studioLight1.dispose()
