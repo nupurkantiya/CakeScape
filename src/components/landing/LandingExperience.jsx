@@ -53,6 +53,14 @@ function LandingExperience() {
     transition: "opacity 0.3s ease",
   }
 
+  const scene6TextStyle = {
+    opacity:
+      scrollProgress > 0.85 && scrollProgress < 1.0
+        ? Math.min((scrollProgress - 0.85) / 0.08, 1)
+        : 0,
+    transition: "opacity 0.3s ease",
+  }
+
 
 
   return (
@@ -81,6 +89,9 @@ function LandingExperience() {
       </div>
       <div className="scene5-text" style={scene5TextStyle}>
         <p>Your masterpiece</p>
+      </div>
+      <div className="scene6-text" style={scene6TextStyle}>
+        <p>Awaits.</p>
       </div>
     </>
   )
