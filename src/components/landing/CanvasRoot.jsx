@@ -529,7 +529,13 @@ function CanvasRoot({ scrollProgress = 0 }) {
       // Color based on height to match the cake layers!
       let c = colorBrown
       if (height > 1.5) c = colorWhite
-      if (height > 2.5) c = colorPink
+      if (height > 2.5) {
+        c = colorPink
+        // Sprinkle crumbs!
+        if (Math.random() > 0.8) {
+          c = new THREE.Color(sprinkleColors[Math.floor(Math.random() * sprinkleColors.length)])
+        }
+      }
       
       shatterColors[i*3] = c.r
       shatterColors[i*3+1] = c.g
@@ -549,7 +555,6 @@ function CanvasRoot({ scrollProgress = 0 }) {
         uniform float uShatterProgress;
         uniform float uPointSize;
         attribute vec3 targetPos;
-        attribute vec3 color;
         varying vec3 vColor;
         void main() {
           vColor = color;
@@ -727,7 +732,6 @@ function CanvasRoot({ scrollProgress = 0 }) {
     baseCakeMesh.scale.y = THREE.MathUtils.lerp(0, 1, baseProgress)
     baseCakeMesh.position.y = (baseCakeHeight * baseCakeMesh.scale.y) / 2
 
-    middleCakeMesh.visible = middleProgress > 0
     middleCakeMesh.scale.y = THREE.MathUtils.lerp(0, 1, middleProgress)
     // The middle layer sits exactly on top of the fully risen base layer
     middleCakeMesh.position.y = baseCakeHeight + (middleCakeHeight * middleCakeMesh.scale.y) / 2
