@@ -624,9 +624,9 @@ function CanvasRoot({ scrollProgress = 0 }) {
     
     // HTML Labels for Portals
     const labels = {
-      explore: { el: document.createElement('div'), html: 'EXPLORE<br><span style="font-size:0.8rem; opacity:0.8; font-weight:normal; letter-spacing:1px;">MENU 🎂</span>', mesh: portalExplore },
-      build: { el: document.createElement('div'), html: 'BUILD<br><span style="font-size:0.8rem; opacity:0.8; font-weight:normal; letter-spacing:1px;">YOUR CAKE</span>', mesh: portalBuild },
-      order: { el: document.createElement('div'), html: 'ORDER<br><span style="font-size:0.8rem; opacity:0.8; font-weight:normal; letter-spacing:1px;">NOW 🛒</span>', mesh: portalOrder }
+      explore: { el: document.createElement('div'), html: 'EXPLORE<br><span style="font-size:0.8rem; opacity:0.8; font-weight:normal; letter-spacing:1px; line-height:1.2;">MENU<br>🎂</span>', mesh: portalExplore },
+      build: { el: document.createElement('div'), html: 'BUILD<br><span style="font-size:0.8rem; opacity:0.8; font-weight:normal; letter-spacing:1px; line-height:1.2;">YOUR<br>CAKE</span>', mesh: portalBuild },
+      order: { el: document.createElement('div'), html: 'ORDER<br><span style="font-size:0.8rem; opacity:0.8; font-weight:normal; letter-spacing:1px; line-height:1.2;">NOW<br>🛒</span>', mesh: portalOrder }
     }
     
     Object.values(labels).forEach(({ el, html }) => {
