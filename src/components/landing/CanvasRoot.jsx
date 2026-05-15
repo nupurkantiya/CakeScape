@@ -609,13 +609,13 @@ function CanvasRoot({ scrollProgress = 0 }) {
     const portalMatOrder = new THREE.MeshStandardMaterial({ color: 0x88ff44, emissive: 0x224411, roughness: 0.1, metalness: 0.8, transparent: true, opacity: 0, wireframe: true })
 
     const portalExplore = new THREE.Mesh(portalGeo, portalMatExplore)
-    portalExplore.position.set(-4, 3, 0)
+    portalExplore.position.set(-3.5, 1.5, 0)
 
     const portalBuild = new THREE.Mesh(portalGeo, portalMatBuild)
-    portalBuild.position.set(0, 4.5, -3) // push back a bit so they form an arc
+    portalBuild.position.set(0, 1.5, -2) // push back a bit so they form an arc
 
     const portalOrder = new THREE.Mesh(portalGeo, portalMatOrder)
-    portalOrder.position.set(4, 3, 0)
+    portalOrder.position.set(3.5, 1.5, 0)
 
     const portals = new THREE.Group()
     portals.add(portalExplore, portalBuild, portalOrder)
@@ -641,18 +641,11 @@ function CanvasRoot({ scrollProgress = 0 }) {
     Object.values(labels).forEach(({ el, html }) => {
       el.innerHTML = html
       el.style.position = 'absolute'
-      el.style.color = 'white'
-      el.style.fontFamily = '"Inter", sans-serif'
-      el.style.fontWeight = 'bold'
-      el.style.fontSize = '1.2rem'
-      el.style.textAlign = 'center'
-      el.style.lineHeight = '1.5'
       el.style.pointerEvents = 'none' // Important: ignore mouse so raycaster works!
       el.style.transform = 'translate(-50%, -50%)'
       el.style.opacity = '0'
       el.style.transition = 'opacity 0.3s, transform 0.2s'
-      el.style.textShadow = '0 2px 10px rgba(0,0,0,0.8)'
-      el.style.letterSpacing = '2px'
+      el.style.zIndex = '10' // Ensure it renders above the canvas
       mountRef.current.appendChild(el)
     })
 
@@ -940,9 +933,9 @@ function CanvasRoot({ scrollProgress = 0 }) {
       portalMatOrder.opacity = portalOpacity
       
       // Floating animation
-      portalExplore.position.y = 3 + Math.sin(elapsed * 2) * 0.3
-      portalBuild.position.y = 4.5 + Math.sin(elapsed * 2.2) * 0.3
-      portalOrder.position.y = 3 + Math.sin(elapsed * 1.8) * 0.3
+      portalExplore.position.y = 1.5 + Math.sin(elapsed * 2) * 0.2
+      portalBuild.position.y = 2.0 + Math.sin(elapsed * 2.2) * 0.2
+      portalOrder.position.y = 1.5 + Math.sin(elapsed * 1.8) * 0.2
       
       // 3D to 2D Projection for HTML Labels
       Object.values(labels).forEach(({ el, mesh }) => {
