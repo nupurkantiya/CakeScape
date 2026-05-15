@@ -495,6 +495,92 @@ function CanvasRoot({ scrollProgress = 0 }) {
     bokehParticles.visible = false
     scene.add(bokehParticles)
 
+    // --- SCENE 6: CAKE SHATTER PARTICLES ---
+    const shatterCount = 5000
+    const shatterGeo = new THREE.BufferGeometry()
+    const shatterPos = new Float32Array(shatterCount * 3)
+    const shatterTarget = new Float32Array(shatterCount * 3)
+    const shatterColors = new Float32Array(shatterCount * 3)
+    
+    const colorBrown = new THREE.Color(0x3e2723)
+    const colorWhite = new THREE.Color(0xf5e6c8)
+    const colorPink  = new THREE.Color(0xffb6c1)
+    
+    for(let i=0; i<shatterCount; i++) {
+      // Random position roughly inside the cake shape
+      const radius = Math.random() * 1.72
+      const angle = Math.random() * Math.PI * 2
+      const height = Math.random() * 2.8 // cake height
+      
+      const x = Math.cos(angle) * radius
+      const y = height
+      const z = Math.sin(angle) * radius
+      
+      shatterPos[i*3] = x
+      shatterPos[i*3+1] = y
+      shatterPos[i*3+2] = z
+      
+      // Explode outwards!
+      const pushOut = radius + (Math.random() * 10 + 5)
+      shatterTarget[i*3] = Math.cos(angle) * pushOut
+      shatterTarget[i*3+1] = y + (Math.random() - 0.5) * 10
+      shatterTarget[i*3+2] = Math.sin(angle) * pushOut
+      
+      // Color based on height to match the cake layers!
+      let c = colorBrown
+      if (height > 1.5) c = colorWhite
+      if (height > 2.5) c = colorPink
+      
+      shatterColors[i*3] = c.r
+      shatterColors[i*3+1] = c.g
+      shatterColors[i*3+2] = c.b
+    }
+    shatterGeo.setAttribute('position', new THREE.BufferAttribute(shatterPos, 3))
+    shatterGeo.setAttribute('targetPos', new THREE.BufferAttribute(shatterTarget, 3))
+    shatterGeo.setAttribute('color', new THREE.BufferAttribute(shatterColors, 3))
+    
+    // Custom ShaderMaterial to animate from position to targetPos
+    const shatterMat = new THREE.ShaderMaterial({
+      uniforms: {
+        uShatterProgress: { value: 0 },
+        uPointSize: { value: 6.0 }
+      },
+      vertexShader: `
+        uniform float uShatterProgress;
+        uniform float uPointSize;
+        attribute vec3 targetPos;
+        attribute vec3 color;
+        varying vec3 vColor;
+        void main() {
+          vColor = color;
+          // Interpolate from starting position to exploding target position using an ease-out curve
+          float progress = 1.0 - pow(1.0 - uShatterProgress, 3.0); 
+          vec3 currentPos = mix(position, targetPos, progress);
+          
+          vec4 mvPosition = modelViewMatrix * vec4(currentPos, 1.0);
+          gl_Position = projectionMatrix * mvPosition;
+          
+          // Make particles shrink as they explode away
+          gl_PointSize = uPointSize * (1.0 - uShatterProgress) * (10.0 / -mvPosition.z);
+        }
+      `,
+      fragmentShader: `
+        varying vec3 vColor;
+        void main() {
+          // Circular particle
+          vec2 xy = gl_PointCoord.xy - vec2(0.5);
+          if(length(xy) > 0.5) discard;
+          gl_FragColor = vec4(vColor, 1.0);
+        }
+      `,
+      transparent: true,
+      vertexColors: true
+    })
+    
+    const shatterMesh = new THREE.Points(shatterGeo, shatterMat)
+    shatterMesh.visible = false
+    scene.add(shatterMesh)
+
     // --- SCENE 4: CAKE LIGHT ---
     const cakeLight = new THREE.PointLight(0xffdd88, 0, 15)
     cakeLight.position.set(0, 5, 0)
@@ -532,6 +618,10 @@ function CanvasRoot({ scrollProgress = 0 }) {
     // Scene 5: The Reveal (70% - 85%)
     const scene5Progress = THREE.MathUtils.clamp(
       (scrollProgressRef.current - 0.70) / 0.15, 0, 1
+    )
+    // Scene 6: The Invitation Shatter (85% - 100%)
+    const scene6Progress = THREE.MathUtils.clamp(
+      (scrollProgressRef.current - 0.85) / 0.15, 0, 1
     )
 
     // --- SCENE 1: Logo particles ---
@@ -625,7 +715,15 @@ function CanvasRoot({ scrollProgress = 0 }) {
     const baseProgress = THREE.MathUtils.smoothstep(scene3Progress, 0.0, 0.5)
     const middleProgress = THREE.MathUtils.smoothstep(scene3Progress, 0.5, 1.0)
 
-    baseCakeMesh.visible = baseProgress > 0
+    // Hide the real cake elements if we are in the shatter scene (Scene 6)
+    if (scene6Progress > 0) {
+      baseCakeMesh.visible = false
+      middleCakeMesh.visible = false
+    } else {
+      baseCakeMesh.visible = baseProgress > 0
+      middleCakeMesh.visible = middleProgress > 0
+    }
+
     baseCakeMesh.scale.y = THREE.MathUtils.lerp(0, 1, baseProgress)
     baseCakeMesh.position.y = (baseCakeHeight * baseCakeMesh.scale.y) / 2
 
@@ -658,13 +756,18 @@ function CanvasRoot({ scrollProgress = 0 }) {
     }
 
     // --- SCENE 4: The Pour (Frosting & Sprinkles) ---
-    frostingMesh.visible = scene4Progress > 0
+    if (scene6Progress > 0) {
+      frostingMesh.visible = false
+      sprinkleMesh.visible = false
+    } else {
+      frostingMesh.visible = scene4Progress > 0
+      sprinkleMesh.visible = scene4Progress > 0
+    }
+
     if (frostingMaterial.userData.shader) {
-      // Send the scroll progress directly to the GPU every single frame
       frostingMaterial.userData.shader.uniforms.uPourProgress.value = scene4Progress
     }
 
-    sprinkleMesh.visible = scene4Progress > 0
     if (scene4Progress > 0) {
       for (let i = 0; i < sprinkleCount; i++) {
         const data = sprinkleData[i]
@@ -733,6 +836,12 @@ function CanvasRoot({ scrollProgress = 0 }) {
       bokehParticles.position.x = Math.sin(elapsed * 0.1) * 2 // Gentle swaying
     }
 
+    // --- SCENE 6: The Shatter ---
+    shatterMesh.visible = scene6Progress > 0
+    if (scene6Progress > 0) {
+      shatterMat.uniforms.uShatterProgress.value = scene6Progress
+    }
+
     // --- RENDER ---
     renderer.render(scene, camera)
     rafId = requestAnimationFrame(animate)
@@ -789,6 +898,10 @@ function CanvasRoot({ scrollProgress = 0 }) {
       bokehGeo.dispose()
       bokehMat.dispose()
       bokehTexture.dispose()
+
+      scene.remove(shatterMesh)
+      shatterGeo.dispose()
+      shatterMat.dispose()
 
       scene.remove(studioLight1)
       studioLight1.dispose()
