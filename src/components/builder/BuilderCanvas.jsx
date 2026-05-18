@@ -1,8 +1,15 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
+import { useBuilder } from '../../context/BuilderContext';
 
 const BuilderCanvas = () => {
   const mountRef = useRef(null);
+  const { state } = useBuilder();
+
+  // We use refs to store our Three.js objects so we can access them in other useEffects
+  const cakeGroupRef = useRef(null);
+  const layerGeometryRef = useRef(null);
+  const layerMaterialRef = useRef(null);
 
   useEffect(() => {
     // 1. Setup Scene, Camera, Renderer
@@ -28,37 +35,25 @@ const BuilderCanvas = () => {
     scene.add(spotLight);
 
     // 3. Create the Cake Group
-    const cakeGroup = new THREE.Group();
-    scene.add(cakeGroup);
+    cakeGroupRef.current = new THREE.Group();
+    scene.add(cakeGroupRef.current);
 
-    // 4. Create the 3 Layers
-    // CylinderGeometry(radiusTop, radiusBottom, height, radialSegments)
-    const layerGeometry = new THREE.CylinderGeometry(2, 2, 1, 32);
-    const layerMaterial = new THREE.MeshStandardMaterial({ 
+    // 4. Create reusable Geometry and Material
+    layerGeometryRef.current = new THREE.CylinderGeometry(2, 2, 1, 32);
+    layerMaterialRef.current = new THREE.MeshStandardMaterial({ 
       color: 0x8b4513, // Chocolate brown
       roughness: 0.8 
     });
 
-    // Bottom Layer (Y = 0.5 because height is 1, so center is 0.5)
-    const layer1 = new THREE.Mesh(layerGeometry, layerMaterial);
-    layer1.position.y = 0.5;
-    cakeGroup.add(layer1);
-
-    // Middle Layer
-    const layer2 = new THREE.Mesh(layerGeometry, layerMaterial);
-    layer2.position.y = 1.5;
-    cakeGroup.add(layer2);
-
-    // Top Layer
-    const layer3 = new THREE.Mesh(layerGeometry, layerMaterial);
-    layer3.position.y = 2.5;
-    cakeGroup.add(layer3);
+    // Note: We don't build the layers here anymore! We will do it in a second useEffect.
 
     // 5. Animation Loop
     let animationFrameId;
     const animate = () => {
       // Slowly rotate the entire cake group!
-      cakeGroup.rotation.y += 0.005;
+      if (cakeGroupRef.current) {
+        cakeGroupRef.current.rotation.y += 0.005;
+      }
       
       renderer.render(scene, camera);
       animationFrameId = requestAnimationFrame(animate);
@@ -81,11 +76,32 @@ const BuilderCanvas = () => {
         mountRef.current.removeChild(renderer.domElement);
       }
       // Dispose Three.js memory
-      layerGeometry.dispose();
-      layerMaterial.dispose();
+      if (layerGeometryRef.current) layerGeometryRef.current.dispose();
+      if (layerMaterialRef.current) layerMaterialRef.current.dispose();
       renderer.dispose();
     };
-  }, []);
+  }, []); // Empty dependency array = runs ONCE on mount
+
+  // 7. Sync React State to Three.js Imperatively
+  useEffect(() => {
+    // Make sure our Three.js objects exist before trying to update them
+    if (!cakeGroupRef.current || !layerGeometryRef.current || !layerMaterialRef.current) return;
+
+    const group = cakeGroupRef.current;
+    
+    // First, remove all existing layers from the group
+    while(group.children.length > 0){ 
+      group.remove(group.children[0]); 
+    }
+
+    // Then, rebuild them based on the React state!
+    for (let i = 0; i < state.layers; i++) {
+      const mesh = new THREE.Mesh(layerGeometryRef.current, layerMaterialRef.current);
+      // Stack them: 0.5, 1.5, 2.5...
+      mesh.position.y = 0.5 + (i * 1);
+      group.add(mesh);
+    }
+  }, [state.layers]); // This hook runs ONLY when state.layers changes!
 
   return <div ref={mountRef} className="builder-canvas" aria-hidden="true" />;
 };
