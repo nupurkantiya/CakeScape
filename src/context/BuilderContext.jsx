@@ -16,6 +16,8 @@ function builderReducer(state, action) {
       return { ...state, layers: action.payload };
     case 'SET_FLAVOR':
       return { ...state, flavor: action.payload };
+    case 'SET_FROSTING':
+      return { ...state, frosting: action.payload };
     default:
       return state;
   }
