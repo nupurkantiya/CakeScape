@@ -98,6 +98,7 @@ export function createFrostingMaterial() {
       varying float vReveal;
       varying float vDrip;
       varying float vHeight;
+      varying float vIsTopCap;
 
       vec4 mod289(vec4 x) {
         return x - floor(x * (1.0 / 289.0)) * 289.0;
@@ -186,6 +187,7 @@ export function createFrostingMaterial() {
 
       void main() {
         vec3 p = position;
+        vIsTopCap = step(0.9, normal.y);
 
         float reveal = smoothstep(-0.06, 0.06, uPour - (1.0 - uv.y));
         float sideMask = smoothstep(0.08, 0.98, 1.0 - uv.y);
@@ -195,8 +197,8 @@ export function createFrostingMaterial() {
         float drip = reveal * sideMask * dripGate;
 
         float dripLength = (0.28 + (1.0 - uv.y) * 1.1) * drip * (0.25 + uPour * 1.05);
-        p.y -= dripLength;
-        p.xz *= 1.0 + drip * 0.08;
+        p.y -= dripLength * (1.0 - vIsTopCap);
+        p.xz *= 1.0 + drip * 0.08 * (1.0 - vIsTopCap);
 
         float wobble = fbm(vec3(p.x * 1.9, p.z * 1.9, uTime * 0.2)) * 0.1;
         p.y += wobble * reveal;
@@ -225,6 +227,7 @@ export function createFrostingMaterial() {
       varying float vReveal;
       varying float vDrip;
       varying float vHeight;
+      varying float vIsTopCap;
 
       void main() {
         vec3 normal = normalize(vNormalW);
@@ -243,7 +246,9 @@ export function createFrostingMaterial() {
         color += vec3(0.28, 0.22, 0.16) * fresnel;
         color += vec3(0.2, 0.12, 0.08) * vDrip * 0.35;
 
-        float alpha = uVisibility * vReveal * smoothstep(0.03, 0.14, uPour);
+        float revealAlpha = max(vIsTopCap * smoothstep(0.0, 0.1, uPour), vReveal);
+        float alpha = uVisibility * revealAlpha * smoothstep(0.03, 0.14, uPour);
+        
         if (alpha < 0.01) {
           discard;
         }
