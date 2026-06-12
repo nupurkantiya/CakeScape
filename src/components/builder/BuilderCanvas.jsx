@@ -16,11 +16,27 @@ function createDrippingFrostingGeometry(radius, thickness, dripLength) {
   for (let i = 0; i < posAttribute.count; i++) {
     vertex.fromBufferAttribute(posAttribute, i);
     
-    // Top cap is now at y = 0. Bottom edge is at y = -thickness.
-    // Only deform vertices below the top cap to prevent any tearing.
-    if (vertex.y < -0.01) {
-      const angle = Math.atan2(vertex.z, vertex.x);
-      
+    const isTopCap = vertex.y > -0.01;
+    const angle = Math.atan2(vertex.z, vertex.x);
+    const distFromCenter = Math.sqrt(vertex.x * vertex.x + vertex.z * vertex.z);
+    
+    // 1. Add "Hand-spread" unevenness to the top cap
+    if (isTopCap) {
+      // Gentle rolling waves to simulate spatula spread marks
+      const spreadNoise = Math.sin(angle * 3 + distFromCenter * 4) * 0.02
+                        + Math.cos(angle * 7) * 0.015;
+      vertex.y += spreadNoise;
+    }
+    
+    // 2. Add organic noise to the sides
+    if (distFromCenter > radius - 0.05) {
+      const sideNoise = Math.sin(angle * 5) * 0.02 + Math.cos(angle * 12) * 0.01;
+      vertex.x += (vertex.x / distFromCenter) * sideNoise;
+      vertex.z += (vertex.z / distFromCenter) * sideNoise;
+    }
+
+    // 3. Create the downward drips
+    if (!isTopCap) {
       // Organic noise for drips using combined sine waves
       let drip = Math.sin(angle * 6) * 0.45 
                + Math.sin(angle * 11) * 0.3 
@@ -30,18 +46,20 @@ function createDrippingFrostingGeometry(radius, thickness, dripLength) {
       drip = Math.max(0, drip); // Only drip downwards
       
       // Normalized depth from 0 (top rim) to 1 (bottom rim)
-      const normalizedY = -vertex.y / thickness;
+      // Since vertex.y might have been modified slightly by sideNoise, use original math
+      const originalY = vertex.y;
+      const normalizedY = Math.min(1.0, Math.max(0.0, -originalY / thickness));
       
       // Stretch downward based on depth
       vertex.y -= drip * dripLength * normalizedY;
       
       // Slightly puff outwards at the drips to give delicious volume
       const bulge = Math.sin(normalizedY * Math.PI) * drip * 0.08;
-      vertex.x += (vertex.x / radius) * bulge;
-      vertex.z += (vertex.z / radius) * bulge;
-      
-      posAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z);
+      vertex.x += (vertex.x / distFromCenter) * bulge;
+      vertex.z += (vertex.z / distFromCenter) * bulge;
     }
+    
+    posAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z);
   }
   
   geo.computeVertexNormals();
@@ -180,8 +198,8 @@ const BuilderCanvas = () => {
     // Reposition the frosting mesh to sit EXACTLY on the top edge of the cake
     if (frostingMeshRef.current) {
       // Cake layer height is 1. Top of highest layer is at y = state.layers
-      // Because our geometry origin is perfectly at its top cap, we just set y to state.layers!
-      frostingMeshRef.current.position.y = state.layers;
+      // We add +0.02 to perfectly prevent Z-fighting flickering with the cake's top surface!
+      frostingMeshRef.current.position.y = state.layers + 0.02;
     }
   }, [state.layers]);
 
