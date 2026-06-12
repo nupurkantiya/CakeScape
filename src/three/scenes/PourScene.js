@@ -75,7 +75,7 @@ function createTextSprite() {
   return { sprite, texture }
 }
 
-function createFrostingMaterial() {
+export function createFrostingMaterial() {
   return new THREE.ShaderMaterial({
     transparent: true,
     side: THREE.DoubleSide,
