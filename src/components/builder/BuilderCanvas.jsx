@@ -2,50 +2,46 @@ import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useBuilder } from '../../context/BuilderContext';
 
-// Helper to create a beautiful 3D dripping frosting geometry
-function createDrippingFrostingGeometry(radius, topThickness, dripLength) {
-  // Create a thin cylinder for the top of the cake
-  const geo = new THREE.CylinderGeometry(radius, radius, topThickness, 128, 16, false);
+// Helper to create a beautiful, STATIC 3D dripping frosting geometry
+// Origin (0,0,0) will be perfectly aligned with the top cap.
+function createDrippingFrostingGeometry(radius, thickness, dripLength) {
+  const geo = new THREE.CylinderGeometry(radius, radius, thickness, 128, 16, false);
+  
+  // Shift geometry so the origin (y=0) is exactly at the top cap.
+  geo.translate(0, -thickness / 2, 0);
   
   const posAttribute = geo.attributes.position;
-  const uvAttribute = geo.attributes.uv;
-  const normalAttribute = geo.attributes.normal;
   const vertex = new THREE.Vector3();
   
   for (let i = 0; i < posAttribute.count; i++) {
     vertex.fromBufferAttribute(posAttribute, i);
-    const u = uvAttribute.getX(i);
-    const v = uvAttribute.getY(i);
-    const ny = normalAttribute.getY(i);
     
-    // Check if it's a vertex on the side of the cylinder (ny is close to 0)
-    if (Math.abs(ny) < 0.1) {
-      // v goes from 0 (bottom edge) to 1 (top edge)
-      // We want to pull the bottom edge down to create drips
-      const angle = u * Math.PI * 2;
+    // Top cap is now at y = 0. Bottom edge is at y = -thickness.
+    // Only deform vertices below the top cap to prevent any tearing.
+    if (vertex.y < -0.01) {
+      const angle = Math.atan2(vertex.z, vertex.x);
       
       // Organic noise for drips using combined sine waves
-      let drip = Math.sin(angle * 7) * 0.4 
-               + Math.sin(angle * 14) * 0.3 
-               + Math.sin(angle * 23) * 0.2 
-               + Math.sin(angle * 31) * 0.1;
+      let drip = Math.sin(angle * 6) * 0.45 
+               + Math.sin(angle * 11) * 0.3 
+               + Math.sin(angle * 19) * 0.15 
+               + Math.sin(angle * 29) * 0.1;
                
       drip = Math.max(0, drip); // Only drip downwards
       
-      // We want the drip to affect the bottom vertices (v < 0.5)
-      // The closer to the bottom (v=0), the more it stretches down
-      const falloff = 1.0 - v; // 1 at bottom, 0 at top
+      // Normalized depth from 0 (top rim) to 1 (bottom rim)
+      const normalizedY = -vertex.y / thickness;
       
-      if (falloff > 0) {
-        // Stretch downward
-        vertex.y -= drip * dripLength * falloff;
-        // Slightly puff outwards at the drips to give volume
-        vertex.x += (vertex.x / radius) * drip * 0.05 * falloff;
-        vertex.z += (vertex.z / radius) * drip * 0.05 * falloff;
-      }
+      // Stretch downward based on depth
+      vertex.y -= drip * dripLength * normalizedY;
+      
+      // Slightly puff outwards at the drips to give delicious volume
+      const bulge = Math.sin(normalizedY * Math.PI) * drip * 0.08;
+      vertex.x += (vertex.x / radius) * bulge;
+      vertex.z += (vertex.z / radius) * bulge;
+      
+      posAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z);
     }
-    
-    posAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z);
   }
   
   geo.computeVertexNormals();
@@ -65,7 +61,7 @@ const BuilderCanvas = () => {
   const frostingMeshRef = useRef(null);
   const frostingMaterialRef = useRef(null);
   const frostingGeometryRef = useRef(null);
-  
+
   useEffect(() => {
     // 1. Setup Scene, Camera, Renderer
     const scene = new THREE.Scene();
@@ -81,16 +77,16 @@ const BuilderCanvas = () => {
     mountRef.current.appendChild(renderer.domElement);
 
     // 2. Add Lighting (Crucial for the frosting to look good)
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
     scene.add(ambientLight);
 
-    const spotLight = new THREE.SpotLight(0xfffae6, 3.5); // Warm spotlight
+    const spotLight = new THREE.SpotLight(0xfffae6, 4.0); // Warm spotlight
     spotLight.position.set(6, 12, 8);
     spotLight.angle = Math.PI / 4;
     spotLight.penumbra = 0.5;
     scene.add(spotLight);
     
-    const fillLight = new THREE.DirectionalLight(0xaaccff, 1.2); // Cool fill light
+    const fillLight = new THREE.DirectionalLight(0xaaccff, 1.5); // Cool fill light
     fillLight.position.set(-5, 3, -5);
     scene.add(fillLight);
 
@@ -107,8 +103,9 @@ const BuilderCanvas = () => {
     });
 
     // 5. Create Procedural Frosting Geometry and Material
-    // Radius: 2.03 (hugs the cake), Thickness: 0.2, DripLength: 0.85
-    frostingGeometryRef.current = createDrippingFrostingGeometry(2.03, 0.2, 0.85);
+    // Radius: 2.02 (hugs cake), Thickness: 0.4 (top half), DripLength: 0.3
+    // Origin is exactly at the top surface.
+    frostingGeometryRef.current = createDrippingFrostingGeometry(2.02, 0.4, 0.3);
     frostingMaterialRef.current = new THREE.MeshStandardMaterial({
       color: 0xffffff,
       roughness: 0.15, // High gloss for frosting!
@@ -183,7 +180,7 @@ const BuilderCanvas = () => {
     // Reposition the frosting mesh to sit EXACTLY on the top edge of the cake
     if (frostingMeshRef.current) {
       // Cake layer height is 1. Top of highest layer is at y = state.layers
-      // Frosting thickness is 0.2, so its center should be at y = state.layers
+      // Because our geometry origin is perfectly at its top cap, we just set y to state.layers!
       frostingMeshRef.current.position.y = state.layers;
     }
   }, [state.layers]);
@@ -196,7 +193,6 @@ const BuilderCanvas = () => {
     if (state.flavor === 'vanilla') colorHex = 0xf3e5ab;
     else if (state.flavor === 'strawberry') colorHex = 0xffb6c1;
 
-    // Smooth transition could be added here, but setHex is instant
     layerMaterialRef.current.color.setHex(colorHex);
   }, [state.flavor]);
 
@@ -219,42 +215,26 @@ const BuilderCanvas = () => {
         mat.color.setHex(0xff93c0);
       }
       
-      // Simple drop-in animation
+      // Animate the frosting pouring down using scale.y
+      // Because the origin is at the top cap, scaling Y makes it grow downwards seamlessly!
       let startTime = performance.now();
-      const targetY = state.layers;
-      const startY = targetY + 2.0; // Start high up
-      
-      // Ensure any previous animation is cancelled
       let rafId;
-      const animateDrop = (time) => {
-        const elapsed = (time - startTime) / 800; // 800ms drop
+      const animatePour = (time) => {
+        const elapsed = (time - startTime) / 800; // 800ms smooth pour
         if (elapsed < 1.0) {
-          // Bounce ease out
-          const n1 = 7.5625;
-          const d1 = 2.75;
-          let t = elapsed;
-          let bounce = 0;
-          if (t < 1 / d1) {
-            bounce = n1 * t * t;
-          } else if (t < 2 / d1) {
-            bounce = n1 * (t -= 1.5 / d1) * t + 0.75;
-          } else if (t < 2.5 / d1) {
-            bounce = n1 * (t -= 2.25 / d1) * t + 0.9375;
-          } else {
-            bounce = n1 * (t -= 2.625 / d1) * t + 0.984375;
-          }
-          
-          frostingMeshRef.current.position.y = startY - ((startY - targetY) * bounce);
-          rafId = requestAnimationFrame(animateDrop);
+          // Smooth easing
+          const t = elapsed * (2 - elapsed);
+          frostingMeshRef.current.scale.set(1, t, 1);
+          rafId = requestAnimationFrame(animatePour);
         } else {
-          frostingMeshRef.current.position.y = targetY;
+          frostingMeshRef.current.scale.set(1, 1, 1);
         }
       };
-      rafId = requestAnimationFrame(animateDrop);
+      rafId = requestAnimationFrame(animatePour);
       
       return () => cancelAnimationFrame(rafId);
     }
-  }, [state.frosting, state.layers]);
+  }, [state.frosting]);
 
   return <div ref={mountRef} className="builder-canvas" aria-hidden="true" />;
 };
