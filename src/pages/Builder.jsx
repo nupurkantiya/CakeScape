@@ -45,6 +45,21 @@ function Builder() {
             ))}
           </div>
         </div>
+
+        <div className="control-group">
+          <h3>Frosting</h3>
+          <div className="button-row">
+            {['none', 'vanilla', 'chocolate', 'strawberry'].map(frosting => (
+              <button 
+                key={frosting} 
+                className={state.frosting === frosting ? 'active' : ''}
+                onClick={() => dispatch({ type: 'SET_FROSTING', payload: frosting })}
+              >
+                {frosting.charAt(0).toUpperCase() + frosting.slice(1)}
+              </button>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
