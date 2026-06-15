@@ -1,95 +1,457 @@
+/* ================================================================
+   CAKE BUILDER — Premium Dark UI
+   ================================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ── Page Layout ─────────────────────────────────────────────── */
 .builder-page {
   position: relative;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
-  background-color: #111115;
+  font-family: 'Inter', sans-serif;
 }
 
 .builder-canvas {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
+  inset: 0;
 }
 
+/* ── Panel ───────────────────────────────────────────────────── */
 .builder-ui-panel {
   position: absolute;
   top: 0;
   left: 0;
-  width: 350px;
-  height: 100%;
-  background: rgba(20, 20, 25, 0.6);
+  bottom: 0;
+  width: 300px;
+  background: linear-gradient(180deg, rgba(12,10,20,0.97) 0%, rgba(18,14,30,0.97) 100%);
   backdrop-filter: blur(20px);
-  border-right: 1px solid rgba(255, 255, 255, 0.1);
-  z-index: 10;
-  padding: 40px 30px;
-  color: white;
+  border-right: 1px solid rgba(255,255,255,0.06);
   display: flex;
   flex-direction: column;
-  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  z-index: 10;
 }
 
-.builder-ui-panel h1 {
-  font-family: 'Inter', sans-serif;
-  font-size: 2rem;
-  font-weight: 800;
-  letter-spacing: 2px;
-  margin-bottom: 10px;
-  background: linear-gradient(90deg, #ffdd88, #ff88dd);
+/* ── Brand Header ─────────────────────────────────────────────── */
+.builder-brand {
+  padding: 24px 20px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+
+.builder-brand h1 {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  background: linear-gradient(135deg, #ffb347, #ff6b9d);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0 0 2px;
 }
 
-.builder-ui-panel p {
-  color: rgba(255, 255, 255, 0.6);
-  font-family: 'Inter', sans-serif;
-  font-size: 0.9rem;
-  margin-bottom: 30px;
+.builder-brand p {
+  font-size: 11px;
+  color: rgba(255,255,255,0.35);
+  margin: 0;
+  letter-spacing: 0.04em;
 }
 
-.control-group {
-  margin-bottom: 25px;
-}
-
-.control-group h3 {
-  font-family: 'Inter', sans-serif;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  color: rgba(255, 255, 255, 0.5);
-  margin-bottom: 12px;
-}
-
-.button-row {
+/* ── Tabs ─────────────────────────────────────────────────────── */
+.builder-tabs {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
+  padding: 12px 12px 0;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
-.button-row button {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.8);
-  padding: 10px 15px;
-  border-radius: 8px;
-  font-family: 'Inter', sans-serif;
-  font-size: 0.85rem;
-  font-weight: 600;
+.builder-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 8px 4px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  color: rgba(255,255,255,0.45);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.button-row button:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
+.builder-tab .tab-icon {
+  font-size: 16px;
+  line-height: 1;
 }
 
-.button-row button.active {
-  background: #ffaaee;
-  color: #111;
-  border-color: #ffaaee;
-  box-shadow: 0 0 15px rgba(255, 170, 238, 0.4);
+.builder-tab:hover {
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.7);
+}
+
+.builder-tab.active {
+  background: linear-gradient(135deg, rgba(255,107,157,0.2), rgba(255,179,71,0.2));
+  border-color: rgba(255,107,157,0.4);
+  color: #fff;
+}
+
+/* ── Tab Content ─────────────────────────────────────────────── */
+.tab-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px 14px 24px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,107,157,0.3) transparent;
+}
+
+.tab-content::-webkit-scrollbar { width: 3px; }
+.tab-content::-webkit-scrollbar-track { background: transparent; }
+.tab-content::-webkit-scrollbar-thumb {
+  background: rgba(255,107,157,0.3);
+  border-radius: 2px;
+}
+
+/* ── Section Labels ──────────────────────────────────────────── */
+.section-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+  margin: 14px 0 8px;
+}
+
+.section-label:first-child { margin-top: 2px; }
+
+/* ── Layer Tab Controls ──────────────────────────────────────── */
+.layer-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.layer-action-btn {
+  flex: 1;
+  padding: 9px 10px;
+  border-radius: 9px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.02em;
+}
+
+.layer-action-btn.add {
+  background: linear-gradient(135deg, #ff6b9d, #ffb347);
+  border: none;
+  color: #fff;
+}
+
+.layer-action-btn.add:hover { opacity: 0.85; transform: translateY(-1px); }
+.layer-action-btn.add:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+.layer-action-btn.remove {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.55);
+}
+
+.layer-action-btn.remove:hover {
+  background: rgba(255,80,80,0.15);
+  border-color: rgba(255,80,80,0.35);
+  color: #ff6060;
+}
+
+.layer-action-btn.remove:disabled { opacity: 0.25; cursor: not-allowed; }
+
+/* ── Layer Card ──────────────────────────────────────────────── */
+.layer-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 8px;
+  transition: border-color 0.2s ease;
+}
+
+.layer-card:hover { border-color: rgba(255,107,157,0.2); }
+
+.layer-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.layer-badge {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, rgba(255,107,157,0.3), rgba(255,179,71,0.3));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: #ffb347;
+  flex-shrink: 0;
+}
+
+.layer-card-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.8);
+}
+
+/* ── Per-layer Frosting Selector ──────────────────────────── */
+.layer-frosting-row {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.layer-frosting-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  border-radius: 20px;
+  font-size: 9.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.45);
+  white-space: nowrap;
+}
+
+.layer-frosting-btn:hover {
+  background: rgba(255,255,255,0.09);
+  color: rgba(255,255,255,0.75);
+}
+
+.layer-frosting-btn.active {
+  background: linear-gradient(135deg, rgba(255,107,157,0.2), rgba(255,179,71,0.18));
+  border-color: rgba(255,107,157,0.5);
+  color: #fff;
+}
+
+.layer-frosting-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.2);
+  flex-shrink: 0;
+}
+
+
+/* ── Size Presets ─────────────────────────────────────────────── */
+.size-presets {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 8px;
+}
+
+.size-preset-btn {
+  flex: 1;
+  padding: 6px 4px;
+  border-radius: 7px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.45);
+}
+
+.size-preset-btn.active {
+  background: linear-gradient(135deg, rgba(255,107,157,0.25), rgba(255,179,71,0.25));
+  border-color: rgba(255,179,71,0.5);
+  color: #ffb347;
+}
+
+/* ── Flavor Swatches ─────────────────────────────────────────── */
+.flavor-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.flavor-swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  position: relative;
+}
+
+.flavor-swatch:hover { transform: scale(1.15); }
+.flavor-swatch.active { border-color: #fff; box-shadow: 0 0 8px rgba(255,255,255,0.5); }
+
+.flavor-swatch-tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.85);
+  color: #fff;
+  font-size: 9px;
+  padding: 3px 7px;
+  border-radius: 5px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 100;
+}
+
+.flavor-swatch:hover .flavor-swatch-tooltip { opacity: 1; }
+
+/* ── Frosting Cards ───────────────────────────────────────────── */
+.frosting-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.frosting-card {
+  padding: 10px 8px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.frosting-card:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.15);
+}
+
+.frosting-card.active {
+  border-color: rgba(255,107,157,0.6);
+  background: rgba(255,107,157,0.1);
+}
+
+.frosting-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.15);
+  flex-shrink: 0;
+}
+
+.frosting-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.7);
+}
+
+/* ── Topping Categories ──────────────────────────────────────── */
+.topping-category-tabs {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.topping-cat-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.45);
+}
+
+.topping-cat-btn.active {
+  background: linear-gradient(135deg, rgba(255,107,157,0.2), rgba(255,179,71,0.2));
+  border-color: rgba(255,179,71,0.4);
+  color: #ffb347;
+}
+
+.topping-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+
+.topping-option-btn {
+  padding: 9px 8px;
+  border-radius: 9px;
+  font-size: 10px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.07);
+  color: rgba(255,255,255,0.5);
+  text-align: center;
+}
+
+.topping-option-btn:hover {
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.8);
+}
+
+.topping-option-btn.active {
+  background: linear-gradient(135deg, rgba(255,107,157,0.2), rgba(255,179,71,0.15));
+  border-color: rgba(255,107,157,0.5);
+  color: #fff;
+}
+
+/* ── Active Toppings Summary ─────────────────────────────────── */
+.active-toppings-summary {
+  margin-top: 14px;
+  padding: 10px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.active-toppings-summary-label {
+  font-size: 9px;
+  color: rgba(255,255,255,0.3);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.active-toppings-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.active-topping-chip {
+  font-size: 9px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(255,107,157,0.25), rgba(255,179,71,0.2));
+  border: 1px solid rgba(255,107,157,0.3);
+  color: rgba(255,255,255,0.8);
+}
+
+.no-toppings-text {
+  font-size: 10px;
+  color: rgba(255,255,255,0.2);
+  font-style: italic;
 }
