@@ -48,8 +48,8 @@ function buildFrostingGeometry(radius, dripDepth = 0.35, segments = 128) {
   }
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-  geo.setAttribute('normal',   new THREE.Float32BufferAttribute(normals, 3));
-  geo.setAttribute('uv',       new THREE.Float32BufferAttribute(uvs, 2));
+  geo.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
   geo.setIndex(indices);
   geo.computeVertexNormals();
   return geo;
@@ -57,16 +57,16 @@ function buildFrostingGeometry(radius, dripDepth = 0.35, segments = 128) {
 
 /* ── Topping config ────────────────────────────────────────── */
 const TOPPING_DEFS = {
-  strawberry_t: { count: 14, color: 0xd62020,  makeGeo: () => new THREE.ConeGeometry(0.09, 0.18, 8) },
-  kiwi:         { count: 10, color: 0x5a9e30,  makeGeo: () => new THREE.CylinderGeometry(0.11, 0.11, 0.04, 20) },
-  blueberry:    { count: 28, color: 0x2e1f6e,  makeGeo: () => new THREE.SphereGeometry(0.07, 10, 8) },
-  mango:        { count: 22, color: 0xffa020,  makeGeo: () => new THREE.BoxGeometry(0.1, 0.07, 0.1) },
-  choco_chips:  { count: 45, color: 0x2d1200,  makeGeo: () => new THREE.ConeGeometry(0.06, 0.09, 6) },
-  white_choco:  { count: 38, color: 0xfff8f0,  makeGeo: () => new THREE.CapsuleGeometry(0.025, 0.1, 4, 8) },
-  almonds:      { count: 18, color: 0xc8a97a,  makeGeo: () => new THREE.CapsuleGeometry(0.04, 0.1, 4, 8) },
-  pistachios:   { count: 22, color: 0x8fb870,  makeGeo: () => new THREE.CapsuleGeometry(0.035, 0.08, 4, 8) },
-  sprinkles:    { count: 110, color: null,      makeGeo: () => new THREE.CapsuleGeometry(0.03, 0.12, 4, 8) },
-  marshmallows: { count: 16, color: 0xfff0f5,  makeGeo: () => new THREE.CylinderGeometry(0.07, 0.07, 0.09, 10) },
+  strawberry_t: { count: 14, color: 0xd62020, makeGeo: () => new THREE.ConeGeometry(0.09, 0.18, 8) },
+  kiwi: { count: 10, color: 0x5a9e30, makeGeo: () => new THREE.CylinderGeometry(0.11, 0.11, 0.04, 20) },
+  blueberry: { count: 28, color: 0x2e1f6e, makeGeo: () => new THREE.SphereGeometry(0.07, 10, 8) },
+  mango: { count: 22, color: 0xffa020, makeGeo: () => new THREE.BoxGeometry(0.1, 0.07, 0.1) },
+  choco_chips: { count: 45, color: 0x2d1200, makeGeo: () => new THREE.ConeGeometry(0.06, 0.09, 6) },
+  white_choco: { count: 38, color: 0xfff8f0, makeGeo: () => new THREE.CapsuleGeometry(0.025, 0.1, 4, 8) },
+  almonds: { count: 18, color: 0xc8a97a, makeGeo: () => new THREE.CapsuleGeometry(0.04, 0.1, 4, 8) },
+  pistachios: { count: 22, color: 0x8fb870, makeGeo: () => new THREE.CapsuleGeometry(0.035, 0.08, 4, 8) },
+  sprinkles: { count: 110, color: null, makeGeo: () => new THREE.CapsuleGeometry(0.03, 0.12, 4, 8) },
+  marshmallows: { count: 16, color: 0xfff0f5, makeGeo: () => new THREE.CylinderGeometry(0.07, 0.07, 0.09, 10) },
 };
 
 /* ── Surface helpers ───────────────────────────────────────── */
@@ -100,48 +100,67 @@ function buildChefHand(scene) {
   const wristGroup = new THREE.Group();
   const fingerGroups = [];
 
-  const skinMat   = new THREE.MeshStandardMaterial({ color: 0xf0c098, roughness: 0.68 });
-  const nailMat   = new THREE.MeshStandardMaterial({ color: 0xf8dcc8, roughness: 0.5 });
+  const skinMat = new THREE.MeshStandardMaterial({ color: 0xf0c098, roughness: 0.68 });
+  const nailMat = new THREE.MeshStandardMaterial({ color: 0xf8dcc8, roughness: 0.5 });
   const sleeveMat = new THREE.MeshStandardMaterial({ color: 0xf8f8f8, roughness: 0.88 });
 
   // Sleeve along X
-  const sleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.125*S, 0.105*S, 0.9*S, 14), sleeveMat);
+  const sleeve = new THREE.Mesh(new THREE.CylinderGeometry(0.125 * S, 0.105 * S, 0.9 * S, 14), sleeveMat);
   sleeve.rotation.z = Math.PI / 2;
-  sleeve.position.x = 0.48*S;
+  sleeve.position.x = 0.48 * S;
   group.add(sleeve);
 
-  const cuff = new THREE.Mesh(new THREE.CylinderGeometry(0.108*S, 0.105*S, 0.12*S, 14), skinMat);
+  const cuff = new THREE.Mesh(new THREE.CylinderGeometry(0.108 * S, 0.105 * S, 0.12 * S, 14), skinMat);
   cuff.rotation.z = Math.PI / 2;
-  cuff.position.x = 0.06*S;
+  cuff.position.x = 0.06 * S;
   group.add(cuff);
+
+  // Wrist joint sphere
+  const wristJoint = new THREE.Mesh(new THREE.SphereGeometry(0.09 * S, 12, 12), skinMat);
+  wristJoint.position.set(0, 0, 0);
+  wristGroup.add(wristJoint);
 
   group.add(wristGroup);
 
-  // Palm — below wrist, palm normal faces DOWN (-Y)
-  const palm = new THREE.Mesh(new THREE.BoxGeometry(0.28*S, 0.11*S, 0.32*S), skinMat);
-  palm.position.set(-0.08*S, -0.055*S, 0.01*S);
+  // Palm base — oriented palm-down (faces -Y)
+  const palm = new THREE.Mesh(new THREE.BoxGeometry(0.26 * S, 0.10 * S, 0.30 * S), skinMat);
+  palm.position.set(-0.08 * S, -0.05 * S, 0.01 * S);
   wristGroup.add(palm);
 
+  // Back of hand (smooth curved dome)
+  const backOfHand = new THREE.Mesh(new THREE.SphereGeometry(0.17 * S, 16, 12), skinMat);
+  backOfHand.scale.set(1.1, 0.48, 0.88);
+  backOfHand.position.set(-0.06 * S, -0.02 * S, 0.01 * S);
+  wristGroup.add(backOfHand);
+
   // Rounded palm edges
-  [-0.14*S, 0.14*S].forEach(zOff => {
-    const edge = new THREE.Mesh(new THREE.CylinderGeometry(0.055*S, 0.055*S, 0.28*S, 10), skinMat);
+  [-0.14 * S, 0.14 * S].forEach(zOff => {
+    const edge = new THREE.Mesh(new THREE.CylinderGeometry(0.05 * S, 0.05 * S, 0.26 * S, 10), skinMat);
     edge.rotation.z = Math.PI / 2;
-    edge.position.set(-0.08*S, -0.055*S, zOff);
+    edge.position.set(-0.08 * S, -0.05 * S, zOff);
     wristGroup.add(edge);
   });
 
-  // Four fingers — 3 segments each, pre-curled like pinching sprinkle posture
+  // Four fingers — 3 segments each, connected by knuckle spheres
   const fingerSpecs = [
-    { z: -0.105*S, r: 0.028*S, s: [0.10*S, 0.08*S, 0.06*S], c: [0.4, 0.6, 0.4] },
-    { z: -0.035*S, r: 0.032*S, s: [0.11*S, 0.09*S, 0.07*S], c: [0.3, 0.55, 0.4] },
-    { z:  0.035*S, r: 0.030*S, s: [0.10*S, 0.085*S, 0.065*S], c: [0.35, 0.55, 0.4] },
-    { z:  0.105*S, r: 0.024*S, s: [0.085*S, 0.07*S, 0.05*S], c: [0.45, 0.6, 0.4] },
+    // Index
+    { x: -0.21 * S, z: -0.10 * S, r: 0.027 * S, s: [0.10 * S, 0.08 * S, 0.06 * S], c: [0.4, 0.6, 0.4] },
+    // Middle
+    { x: -0.23 * S, z: -0.03 * S, r: 0.030 * S, s: [0.11 * S, 0.09 * S, 0.07 * S], c: [0.3, 0.55, 0.4] },
+    // Ring
+    { x: -0.21 * S, z: 0.03 * S, r: 0.028 * S, s: [0.10 * S, 0.085 * S, 0.065 * S], c: [0.35, 0.55, 0.4] },
+    // Pinky
+    { x: -0.18 * S, z: 0.10 * S, r: 0.023 * S, s: [0.085 * S, 0.07 * S, 0.05 * S], c: [0.45, 0.6, 0.4] },
   ];
 
-  fingerSpecs.forEach(({ z, r, s, c }) => {
+  fingerSpecs.forEach(({ x, z, r, s, c }) => {
     const root = new THREE.Group();
-    root.position.set(-0.20*S, -0.11*S, z);
-    root.rotation.x = c[0];
+    root.position.set(x, -0.06 * S, z);
+    root.rotation.z = -0.25; // base angle pointing forward/down
+
+    // Knuckle sphere
+    const knuckle = new THREE.Mesh(new THREE.SphereGeometry(r * 1.15, 8, 8), skinMat);
+    root.add(knuckle);
 
     const seg0 = new THREE.Mesh(new THREE.CapsuleGeometry(r, s[0], 4, 8), skinMat);
     seg0.position.y = -s[0] * 0.5;
@@ -149,47 +168,64 @@ function buildChefHand(scene) {
 
     const mid = new THREE.Group();
     mid.position.y = -s[0];
-    mid.rotation.x = c[1];
+    mid.rotation.z = c[1];
+
+    const midJoint = new THREE.Mesh(new THREE.SphereGeometry(r * 1.0, 8, 8), skinMat);
+    mid.add(midJoint);
+
     const seg1 = new THREE.Mesh(new THREE.CapsuleGeometry(r * 0.88, s[1], 4, 8), skinMat);
     seg1.position.y = -s[1] * 0.5;
     mid.add(seg1);
 
     const tipG = new THREE.Group();
     tipG.position.y = -s[1];
-    tipG.rotation.x = c[2];
+    tipG.rotation.z = c[2];
+
+    const tipJoint = new THREE.Mesh(new THREE.SphereGeometry(r * 0.85, 8, 8), skinMat);
+    tipG.add(tipJoint);
+
     const seg2 = new THREE.Mesh(new THREE.CapsuleGeometry(r * 0.72, s[2], 4, 8), skinMat);
     seg2.position.y = -s[2] * 0.5;
     tipG.add(seg2);
-    const nail = new THREE.Mesh(new THREE.BoxGeometry(r*1.1, r*0.25, s[2]*0.5), nailMat);
-    nail.position.set(r*0.55, -s[2]*0.48, 0);
+
+    const nail = new THREE.Mesh(new THREE.BoxGeometry(r * 1.1, r * 0.25, s[2] * 0.5), nailMat);
+    nail.position.set(r * 0.55, -s[2] * 0.48, 0);
     tipG.add(nail);
+
     mid.add(tipG);
     root.add(mid);
 
     wristGroup.add(root);
-    root.userData.baseCurl = c[0]; // store so animation can restore it
+    root.userData.baseCurl = -0.25; // store so animation can restore it
     fingerGroups.push(root);
   });
 
   // Thumb
   const tRoot = new THREE.Group();
-  tRoot.position.set(0.04*S, -0.05*S, -0.165*S);
-  tRoot.rotation.set(-0.5, 0.7, -0.6);
-  const ts1 = new THREE.Mesh(new THREE.CapsuleGeometry(0.034*S, 0.10*S, 4, 8), skinMat);
-  ts1.position.y = -0.05*S;
+  tRoot.position.set(-0.06 * S, -0.06 * S, -0.16 * S);
+  tRoot.rotation.set(0.2, 0.6, -0.5);
+
+  const tKnuckle = new THREE.Mesh(new THREE.SphereGeometry(0.04 * S, 8, 8), skinMat);
+  tRoot.add(tKnuckle);
+
+  const ts1 = new THREE.Mesh(new THREE.CapsuleGeometry(0.036 * S, 0.12 * S, 4, 8), skinMat);
+  ts1.position.y = -0.06 * S;
   tRoot.add(ts1);
+
   const tMid = new THREE.Group();
-  tMid.position.y = -0.10*S;
-  tMid.rotation.x = 0.5;
-  const ts2 = new THREE.Mesh(new THREE.CapsuleGeometry(0.027*S, 0.08*S, 4, 8), skinMat);
-  ts2.position.y = -0.04*S;
+  tMid.position.y = -0.12 * S;
+  tMid.rotation.x = 0.4;
+
+  const tJoint = new THREE.Mesh(new THREE.SphereGeometry(0.03 * S, 8, 8), skinMat);
+  tMid.add(tJoint);
+
+  const ts2 = new THREE.Mesh(new THREE.CapsuleGeometry(0.028 * S, 0.09 * S, 4, 8), skinMat);
+  ts2.position.y = -0.045 * S;
   tMid.add(ts2);
   tRoot.add(tMid);
   wristGroup.add(tRoot);
 
-  // Orientation: sleeve upper-right, palm DOWN toward cake
-  // rotation.z = 0.6 → arm tilts upper-right like reference
-  // rotation.x = -0.25 → lean palm forward/down
+  // Orientation
   group.rotation.set(-0.25, 0.15, 0.6);
   group.position.set(12, 5, 0);
   group.visible = false;
@@ -206,21 +242,21 @@ const BuilderCanvas = () => {
   const { state } = useBuilder();
   const mountRef = useRef(null);
 
-  const masterGroupRef    = useRef(null);
-  const layerMeshesRef    = useRef([]);
+  const masterGroupRef = useRef(null);
+  const layerMeshesRef = useRef([]);
   const frostingMeshesRef = useRef([]);
-  const toppingMeshes     = useRef({});
-  const toppingGeos       = useRef({});
-  const toppingMats       = useRef({});
-  const prevToppings      = useRef([]);
+  const toppingMeshes = useRef({});
+  const toppingGeos = useRef({});
+  const toppingMats = useRef({});
+  const prevToppings = useRef([]);
   const prevLayerFrostings = useRef([]);
-  const dummy             = useRef(new THREE.Object3D());
+  const dummy = useRef(new THREE.Object3D());
 
   // Chef hand refs
-  const handGroupRef   = useRef(null);
-  const wristGroupRef  = useRef(null);
+  const handGroupRef = useRef(null);
+  const wristGroupRef = useRef(null);
   const fingerGroupsRef = useRef([]);
-  const handAnimRef    = useRef({ active: false, phase: 'idle', startTime: 0, targetY: 4 });
+  const handAnimRef = useRef({ active: false, phase: 'idle', startTime: 0, targetY: 4 });
 
   /* ── Scene init ────────────────────────────────────────── */
   useEffect(() => {
@@ -239,16 +275,16 @@ const BuilderCanvas = () => {
 
     // OrbitControls — rotate / zoom / pan
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping  = true;
-    controls.dampingFactor  = 0.06;
-    controls.autoRotate     = true;
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.06;
+    controls.autoRotate = true;
     controls.autoRotateSpeed = 0.6;
-    controls.minDistance    = 5;
-    controls.maxDistance    = 30;
+    controls.minDistance = 5;
+    controls.maxDistance = 30;
     controls.target.set(0, 2, 0);
     // Pause auto-rotate while user drags
     controls.addEventListener('start', () => { controls.autoRotate = false; });
-    controls.addEventListener('end',   () => { controls.autoRotate = true; });
+    controls.addEventListener('end', () => { controls.autoRotate = true; });
 
     // Lighting
     scene.add(new THREE.AmbientLight(0xffffff, 0.8));
@@ -290,60 +326,80 @@ const BuilderCanvas = () => {
 
     // Chef hand (in scene world space, not master group)
     const { group: handGroup, wristGroup, fingerGroups } = buildChefHand(scene);
-    handGroupRef.current   = handGroup;
-    wristGroupRef.current  = wristGroup;
+    handGroupRef.current = handGroup;
+    wristGroupRef.current = wristGroup;
     fingerGroupsRef.current = fingerGroups;
 
     // Animation loop
     let raf;
     const tick = () => {
       controls.update();
+      camera.updateMatrixWorld(true);
 
       // ── Hand animation state machine ──
       const anim = handAnimRef.current;
       if (anim.active) {
-        const hg  = handGroupRef.current;
-        const wg  = wristGroupRef.current;
+        const hg = handGroupRef.current;
+        const wg = wristGroupRef.current;
         const fgs = fingerGroupsRef.current;
-        const t   = (performance.now() - anim.startTime) / 1000;
-        const ty  = anim.targetY;
+        const t = (performance.now() - anim.startTime) / 1000;
+        const ty = anim.targetY;
+
+        // Calculate horizontal direction and screen-right vector in horizontal plane
+        const camX = camera.position.x;
+        const camZ = camera.position.z;
+        const len = Math.sqrt(camX * camX + camZ * camZ) || 1;
+        const rightX = camZ / len;
+        const rightZ = -camX / len;
+        const right = new THREE.Vector3(rightX, 0, rightZ);
+
+        // Center position above the cake
+        const targetCenter = new THREE.Vector3(0, ty, 0);
+
+        // Calculate yaw (horizontal camera angle) so hand rotates around cake to stay on right side.
+        // Add static natural slant tilt (sleeve pointing upper-right).
+        const yaw = Math.atan2(camX, camZ);
+        hg.rotation.set(0.18, yaw, 0.35);
 
         if (anim.phase === 'entering') {
-          // Slide hand in from right side to position just above+beside cake
+          // Slide in from right (12 units) to over the cake (0.8 units)
           const ease = easeOutCubic(Math.min(t / 0.7, 1));
-          hg.position.x = lerp(12, 2.2, ease);
-          hg.position.y = ty;
-          hg.position.z = lerp(0, -0.5, ease);
+          const dist = lerp(12, 0.8, ease);
+          hg.position.copy(targetCenter).addScaledVector(right, dist);
           if (t >= 0.7) { anim.phase = 'sprinkling'; anim.startTime = performance.now(); }
 
         } else if (anim.phase === 'sprinkling') {
-          // Natural sprinkling: rapid individual finger flicking + wrist bounce
-          // Wrist rotates slightly like tossing
-          wg.rotation.z = Math.sin(t * Math.PI * 2.5) * 0.2;
-          wg.rotation.y = Math.sin(t * Math.PI * 1.8) * 0.25; // left-right scatter
-          // Hand bounces slightly up-down
-          hg.position.y = ty + Math.sin(t * Math.PI * 3) * 0.15;
+          // Wrist tossing motion: rotate side-to-side (local Y) and slight dip (local Z)
+          wg.rotation.y = Math.sin(t * Math.PI * 2.0) * 0.22;
+          wg.rotation.z = Math.sin(t * Math.PI * 3.5) * 0.10;
 
-          // Fingers curl/flick on X axis (they hang down in -Y from knuckle)
-          // baseCurl is the resting curl angle stored per finger
+          // Hand bounces slightly up-down
+          const bounce = Math.sin(t * Math.PI * 3) * 0.15;
+          hg.position.copy(targetCenter)
+            .addScaledVector(right, 0.8)
+            .addScaledVector(new THREE.Vector3(0, 1, 0), bounce);
+
+          // Fingers curl/flick on local Z axis (toward and away from palm)
           fgs.forEach((fg, i) => {
             const phase = i * 0.45;
-            // Oscillate: fully pinched → snap open → repeat
             const wave = Math.sin(t * Math.PI * 5.5 + phase) * 0.5 + 0.5;
-            fg.rotation.x = (fg.userData.baseCurl || 0.4) - wave * 0.45;
+            fg.rotation.z = (fg.userData.baseCurl || -0.25) + wave * 0.5;
           });
 
           if (t >= 1.5) { anim.phase = 'exiting'; anim.startTime = performance.now(); }
 
         } else if (anim.phase === 'exiting') {
-          // Reset fingers to their resting curl and slide hand out
-          fgs.forEach(fg => { fg.rotation.x = lerp(fg.rotation.x, fg.userData.baseCurl || 0.4, 0.15); });
-          wg.rotation.set(0, 0, 0);
+          // Slide out along the horizontal right vector
           const ease = Math.min(t / 0.55, 1) ** 2;
-          hg.position.x = lerp(2.2, 12, ease);
+          const dist = lerp(0.8, 12, ease);
+          hg.position.copy(targetCenter).addScaledVector(right, dist);
+
+          fgs.forEach(fg => { fg.rotation.z = lerp(fg.rotation.z, fg.userData.baseCurl || -0.25, 0.15); });
+          wg.rotation.set(0, 0, 0);
+
           if (t >= 0.55) {
             hg.visible = false;
-            fgs.forEach(fg => { fg.rotation.x = fg.userData.baseCurl || 0.4; });
+            fgs.forEach(fg => { fg.rotation.z = fg.userData.baseCurl || -0.25; });
             anim.active = false; anim.phase = 'idle';
           }
         }
@@ -423,7 +479,7 @@ const BuilderCanvas = () => {
     prevLayerFrostings.current = state.layers.map(l => l.frosting);
 
     // Update hand target height
-    if (handAnimRef.current) handAnimRef.current.targetY = state.layers.length + 1.8;
+    if (handAnimRef.current) handAnimRef.current.targetY = state.layers.length + 2.2;
 
     // Reposition active toppings
     const surfaces = getExposedSurfaces(state.layers);
@@ -447,13 +503,13 @@ const BuilderCanvas = () => {
   useEffect(() => {
     const prev = prevToppings.current;
     const curr = state.toppings;
-    const added   = curr.filter(id => !prev.includes(id));
+    const added = curr.filter(id => !prev.includes(id));
     const removed = prev.filter(id => !curr.includes(id));
     const surfaces = getExposedSurfaces(state.layers);
 
     added.forEach(id => {
       const imesh = toppingMeshes.current[id];
-      const def   = TOPPING_DEFS[id];
+      const def = TOPPING_DEFS[id];
       if (!imesh || !def) return;
 
       const positions = generatePositions(def.count, surfaces);
@@ -470,12 +526,11 @@ const BuilderCanvas = () => {
       // Trigger chef hand animation
       const hg = handGroupRef.current;
       if (hg) {
-        const targetY = state.layers.length + 1.8;
+        const targetY = state.layers.length + 2.2;
         hg.visible = true;
-        hg.position.set(12, targetY, 0);
         // Reset wrist + fingers to neutral before animating
         if (wristGroupRef.current) wristGroupRef.current.rotation.set(0, 0, 0);
-        fingerGroupsRef.current.forEach(fg => { fg.rotation.z = 0; });
+        fingerGroupsRef.current.forEach(fg => { fg.rotation.z = fg.userData.baseCurl || -0.25; });
         handAnimRef.current = { active: true, phase: 'entering', startTime: performance.now(), targetY };
       }
 
