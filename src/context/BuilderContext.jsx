@@ -5,9 +5,9 @@ let nextId = 4;
 const initialState = {
   // frosting is now per-layer: each layer carries its own frosting style
   layers: [
-    { id: 1, flavor: 'chocolate',  size: 2.0, frosting: 'none' },
-    { id: 2, flavor: 'vanilla',    size: 1.6, frosting: 'none' },
-    { id: 3, flavor: 'strawberry', size: 1.2, frosting: 'none' },
+    { id: 1, flavor: 'chocolate',  size: 2.0, frosting: 'none', customColor: null },
+    { id: 2, flavor: 'vanilla',    size: 1.6, frosting: 'none', customColor: null },
+    { id: 3, flavor: 'strawberry', size: 1.2, frosting: 'none', customColor: null },
   ],
   toppings: [],
 };
@@ -21,7 +21,7 @@ function builderReducer(state, action) {
       const newSize = Math.max(0.6, +(topSize - 0.4).toFixed(2));
       return {
         ...state,
-        layers: [...state.layers, { id: nextId++, flavor: 'chocolate', size: newSize, frosting: 'none' }],
+        layers: [...state.layers, { id: nextId++, flavor: 'chocolate', size: newSize, frosting: 'none', customColor: null }],
       };
     }
 
@@ -43,7 +43,16 @@ function builderReducer(state, action) {
       return {
         ...state,
         layers: state.layers.map((l) =>
-          l.id === action.payload.id ? { ...l, flavor: action.payload.flavor } : l
+          l.id === action.payload.id ? { ...l, flavor: action.payload.flavor, customColor: null } : l
+        ),
+      };
+    }
+
+    case 'UPDATE_LAYER_CUSTOM_COLOR': {
+      return {
+        ...state,
+        layers: state.layers.map((l) =>
+          l.id === action.payload.id ? { ...l, customColor: action.payload.color } : l
         ),
       };
     }

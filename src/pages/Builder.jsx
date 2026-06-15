@@ -123,6 +123,30 @@ function LayerCard({ layer, index, total, dispatch }) {
           </div>
         ))}
       </div>
+
+      {/* Custom color picker */}
+      <p className="section-label">Custom Color</p>
+      <div className="custom-color-row">
+        <label className="color-picker-label" title="Pick any custom color">
+          <input
+            type="color"
+            className="color-picker-input"
+            value={layer.customColor || '#8b4513'}
+            onChange={(e) =>
+              dispatch({ type: 'UPDATE_LAYER_CUSTOM_COLOR', payload: { id: layer.id, color: e.target.value } })
+            }
+          />
+          <span className="color-picker-swatch" style={{ backgroundColor: layer.customColor || 'rgba(255,255,255,0.08)' }} />
+          <span className="color-picker-text">{layer.customColor ? layer.customColor : 'Pick any colour'}</span>
+        </label>
+        {layer.customColor && (
+          <button
+            className="clear-custom-color"
+            onClick={() => dispatch({ type: 'UPDATE_LAYER_FLAVOR', payload: { id: layer.id, flavor: layer.flavor || 'chocolate' } })}
+            title="Reset to preset"
+          >✕</button>
+        )}
+      </div>
     </div>
   );
 }
