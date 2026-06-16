@@ -74,14 +74,21 @@ function builderReducer(state, action) {
       };
     }
 
-    case 'TOGGLE_TOPPING': {
+    case 'ADD_TOPPING': {
       const id = action.payload;
-      const exists = state.toppings.includes(id);
+      const existing = state.toppings.find((t) => t.id === id);
       return {
         ...state,
-        toppings: exists
-          ? state.toppings.filter((t) => t !== id)
-          : [...state.toppings, id],
+        toppings: existing
+          ? state.toppings.map((t) => t.id === id ? { ...t, count: t.count + 1 } : t)
+          : [...state.toppings, { id, count: 1 }],
+      };
+    }
+
+    case 'REMOVE_TOPPING': {
+      return {
+        ...state,
+        toppings: state.toppings.filter((t) => t.id !== action.payload),
       };
     }
 
