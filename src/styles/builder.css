@@ -511,15 +511,49 @@
 
 .active-topping-chip {
   font-size: 9px;
-  padding: 3px 8px;
+  padding: 3px 6px 3px 8px;
   border-radius: 20px;
   background: linear-gradient(135deg, rgba(255,107,157,0.25), rgba(255,179,71,0.2));
   border: 1px solid rgba(255,107,157,0.3);
   color: rgba(255,255,255,0.8);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
+
+.remove-topping-btn {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.45);
+  font-size: 9px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.15s ease;
+}
+
+.remove-topping-btn:hover { color: #ff6060; }
 
 .no-toppings-text {
   font-size: 10px;
   color: rgba(255,255,255,0.2);
   font-style: italic;
+}
+
+/* Count badge on topping buttons */
+.topping-option-btn {
+  position: relative;
+}
+
+.topping-count-badge {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 5px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #ff6b9d, #ffb347);
+  color: #fff;
+  font-size: 8px;
+  font-weight: 700;
+  vertical-align: middle;
+  line-height: 1.4;
 }
