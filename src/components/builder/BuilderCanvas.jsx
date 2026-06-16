@@ -248,6 +248,7 @@ const BuilderCanvas = () => {
   const toppingMeshes = useRef({});
   const toppingGeos = useRef({});
   const toppingMats = useRef({});
+  const toppingOffsets = useRef({});  // tracks how many instances are already placed per topping
   const prevToppings = useRef([]);
   const prevLayerFrostings = useRef([]);
   const dummy = useRef(new THREE.Object3D());
@@ -302,7 +303,8 @@ const BuilderCanvas = () => {
     scene.add(master);
     masterGroupRef.current = master;
 
-    // Topping instanced meshes
+    // Topping instanced meshes — 6× capacity to allow multiple additive batches
+    const MAX_BATCHES = 6;
     const sprinklePalette = [0xff7ba3, 0xffd56c, 0x7ef5ff, 0xffb27d, 0xb2ff95, 0xff8ae2];
     Object.entries(TOPPING_DEFS).forEach(([id, def]) => {
       const geo = def.makeGeo();
@@ -310,18 +312,20 @@ const BuilderCanvas = () => {
         color: def.color ?? 0xffffff, roughness: 0.45, metalness: 0.1,
         vertexColors: id === 'sprinkles',
       });
-      const mesh = new THREE.InstancedMesh(geo, mat, def.count);
+      const totalCapacity = def.count * MAX_BATCHES;
+      const mesh = new THREE.InstancedMesh(geo, mat, totalCapacity);
       mesh.visible = false; mesh.castShadow = true;
       if (id === 'sprinkles') {
-        for (let i = 0; i < def.count; i++)
+        for (let i = 0; i < totalCapacity; i++)
           mesh.setColorAt(i, new THREE.Color(sprinklePalette[Math.floor(Math.random() * sprinklePalette.length)]));
         if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
       }
       dummy.current.scale.setScalar(0); dummy.current.updateMatrix();
-      for (let i = 0; i < def.count; i++) mesh.setMatrixAt(i, dummy.current.matrix);
+      for (let i = 0; i < totalCapacity; i++) mesh.setMatrixAt(i, dummy.current.matrix);
       mesh.instanceMatrix.needsUpdate = true;
       master.add(mesh);
       toppingMeshes.current[id] = mesh; toppingGeos.current[id] = geo; toppingMats.current[id] = mat;
+      toppingOffsets.current[id] = 0;
     });
 
     // Chef hand (in scene world space, not master group)
@@ -481,13 +485,14 @@ const BuilderCanvas = () => {
     // Update hand target height
     if (handAnimRef.current) handAnimRef.current.targetY = state.layers.length + 2.2;
 
-    // Reposition active toppings
+    // Reposition active toppings (keep all placed instances in their new layer positions)
     const surfaces = getExposedSurfaces(state.layers);
-    prevToppings.current.forEach(id => {
+    prevToppings.current.forEach(({ id }) => {
       const imesh = toppingMeshes.current[id];
       if (!imesh?.visible) return;
       const def = TOPPING_DEFS[id];
-      const positions = generatePositions(def.count, surfaces);
+      const capacity = def.count * 6;
+      const positions = generatePositions(capacity, surfaces);
       positions.forEach((pos, idx) => {
         dummy.current.position.copy(pos);
         dummy.current.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI);
@@ -501,16 +506,29 @@ const BuilderCanvas = () => {
 
   /* ── Toppings + chef hand animation ───────────────────── */
   useEffect(() => {
-    const prev = prevToppings.current;
-    const curr = state.toppings;
-    const added = curr.filter(id => !prev.includes(id));
-    const removed = prev.filter(id => !curr.includes(id));
+    const prev = prevToppings.current; // [{ id, count }]
+    const curr = state.toppings;       // [{ id, count }]
     const surfaces = getExposedSurfaces(state.layers);
+    const MAX_BATCHES = 6;
 
-    added.forEach(id => {
+    // Find toppings whose count increased (need a new batch sprinkled)
+    const needsBatch = curr.filter(({ id, count }) => {
+      const prevEntry = prev.find((p) => p.id === id);
+      return !prevEntry || count > prevEntry.count;
+    });
+
+    // Find toppings that were completely removed
+    const removed = prev.filter(({ id }) => !curr.find((c) => c.id === id));
+
+    needsBatch.forEach(({ id }) => {
       const imesh = toppingMeshes.current[id];
       const def = TOPPING_DEFS[id];
       if (!imesh || !def) return;
+
+      const capacity = def.count * MAX_BATCHES;
+      const offset = toppingOffsets.current[id] ?? 0;
+      // If we've filled all slots, wrap around (overwrite oldest batch)
+      const startIdx = (offset % MAX_BATCHES) * def.count;
 
       const positions = generatePositions(def.count, surfaces);
       const rotations = positions.map(() => ({
@@ -519,8 +537,9 @@ const BuilderCanvas = () => {
       const delays = positions.map(() => Math.random() * 0.5);
 
       imesh.visible = true;
+      // Hide this batch's slots while animation begins
       dummy.current.scale.setScalar(0); dummy.current.updateMatrix();
-      for (let i = 0; i < def.count; i++) imesh.setMatrixAt(i, dummy.current.matrix);
+      for (let i = startIdx; i < startIdx + def.count; i++) imesh.setMatrixAt(i, dummy.current.matrix);
       imesh.instanceMatrix.needsUpdate = true;
 
       // Trigger chef hand animation
@@ -528,7 +547,6 @@ const BuilderCanvas = () => {
       if (hg) {
         const targetY = state.layers.length + 2.2;
         hg.visible = true;
-        // Reset wrist + fingers to neutral before animating
         if (wristGroupRef.current) wristGroupRef.current.rotation.set(0, 0, 0);
         fingerGroupsRef.current.forEach(fg => { fg.rotation.z = fg.userData.baseCurl || -0.25; });
         handAnimRef.current = { active: true, phase: 'entering', startTime: performance.now(), targetY };
@@ -541,7 +559,8 @@ const BuilderCanvas = () => {
         const elapsed = (now - t0) / 1000;
         let running = false;
         positions.forEach((target, i) => {
-          const localT = Math.max(0, elapsed - 0.7 - delays[i]) / 0.6; // start after hand enters
+          const slotIdx = startIdx + i;
+          const localT = Math.max(0, elapsed - 0.7 - delays[i]) / 0.6;
           if (localT >= 1) {
             dummy.current.position.copy(target);
             dummy.current.rotation.set(rotations[i].x, rotations[i].y, rotations[i].z);
@@ -557,21 +576,26 @@ const BuilderCanvas = () => {
             dummy.current.scale.setScalar(0);
           }
           dummy.current.updateMatrix();
-          imesh.setMatrixAt(i, dummy.current.matrix);
+          imesh.setMatrixAt(slotIdx, dummy.current.matrix);
         });
         imesh.instanceMatrix.needsUpdate = true;
         if (running || elapsed < 0.7) raf = requestAnimationFrame(animate);
       };
       raf = requestAnimationFrame(animate);
+
+      toppingOffsets.current[id] = offset + 1;
     });
 
-    removed.forEach(id => {
+    removed.forEach(({ id }) => {
       const imesh = toppingMeshes.current[id];
-      if (!imesh) return;
+      const def = TOPPING_DEFS[id];
+      if (!imesh || !def) return;
+      const capacity = def.count * MAX_BATCHES;
       dummy.current.scale.setScalar(0); dummy.current.updateMatrix();
-      for (let i = 0; i < TOPPING_DEFS[id].count; i++) imesh.setMatrixAt(i, dummy.current.matrix);
+      for (let i = 0; i < capacity; i++) imesh.setMatrixAt(i, dummy.current.matrix);
       imesh.instanceMatrix.needsUpdate = true;
       imesh.visible = false;
+      toppingOffsets.current[id] = 0;
     });
 
     prevToppings.current = curr;
