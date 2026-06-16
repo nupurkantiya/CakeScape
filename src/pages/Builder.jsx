@@ -159,7 +159,7 @@ function Builder() {
 
   const TABS = [
     { id: 'layers',   label: 'Layers',   icon: '🎂' },
-    { id: 'frosting', label: 'Apply All', icon: '🍦' },
+    { id: 'frosting', label: 'Frosting',  icon: '🍦' },
     { id: 'toppings', label: 'Toppings', icon: '🍒' },
   ];
 
@@ -273,15 +273,19 @@ function Builder() {
             {/* Options for active category */}
             {activeCatData && (
               <div className="topping-options">
-                {activeCatData.options.map((opt) => (
-                  <button
-                    key={opt.id}
-                    className={`topping-option-btn ${state.toppings.includes(opt.id) ? 'active' : ''}`}
-                    onClick={() => dispatch({ type: 'TOGGLE_TOPPING', payload: opt.id })}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
+                {activeCatData.options.map((opt) => {
+                    const toppingEntry = state.toppings.find((t) => t.id === opt.id);
+                    return (
+                      <button
+                        key={opt.id}
+                        className={`topping-option-btn ${toppingEntry ? 'active' : ''}`}
+                        onClick={() => dispatch({ type: 'ADD_TOPPING', payload: opt.id })}
+                      >
+                        {opt.label}
+                        {toppingEntry && <span className="topping-count-badge">{toppingEntry.count}×</span>}
+                      </button>
+                    );
+                  })}
               </div>
             )}
 
@@ -292,10 +296,17 @@ function Builder() {
                 <span className="no-toppings-text">None selected</span>
               ) : (
                 <div className="active-toppings-list">
-                  {state.toppings.map((id) => {
+                  {state.toppings.map(({ id, count }) => {
                     const opt = allToppingOptions.find((o) => o.id === id);
                     return opt ? (
-                      <span key={id} className="active-topping-chip">{opt.label}</span>
+                      <span key={id} className="active-topping-chip">
+                        {opt.label} ×{count}
+                        <button
+                          className="remove-topping-btn"
+                          onClick={() => dispatch({ type: 'REMOVE_TOPPING', payload: id })}
+                          title="Remove all"
+                        >✕</button>
+                      </span>
                     ) : null;
                   })}
                 </div>
