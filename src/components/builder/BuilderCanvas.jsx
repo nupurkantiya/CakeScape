@@ -239,7 +239,7 @@ function lerp(a, b, t) { return a + (b - a) * t; }
 
 /* ── Component ─────────────────────────────────────────────── */
 const BuilderCanvas = () => {
-  const { state } = useBuilder();
+  const { state, decorCanvasRef } = useBuilder();
   const mountRef = useRef(null);
 
   const masterGroupRef = useRef(null);
@@ -258,6 +258,15 @@ const BuilderCanvas = () => {
   const wristGroupRef = useRef(null);
   const fingerGroupsRef = useRef([]);
   const handAnimRef = useRef({ active: false, phase: 'idle', startTime: 0, targetY: 4 });
+
+  // Decoration overlay refs
+  const decorMeshRef = useRef(null);
+  const decorColorTexRef = useRef(null);
+  const decorBumpTexRef = useRef(null);
+  const bumpCanvas = useRef(null);
+  const compositeCanvas = useRef(null); // final merged canvas → Three.js texture
+  const photoImgRef = useRef(null);     // cached Image object for photo
+  const sceneRef = useRef(null);
 
   /* ── Scene init ────────────────────────────────────────── */
   useEffect(() => {
@@ -302,6 +311,87 @@ const BuilderCanvas = () => {
     const master = new THREE.Group();
     scene.add(master);
     masterGroupRef.current = master;
+    sceneRef.current = scene;
+
+    // ── Static Luxury Cake Stand ───────────────────────────
+    const standMat = new THREE.MeshStandardMaterial({
+      color: 0xd4af37, metalness: 0.92, roughness: 0.12,
+    });
+    const rimMat = new THREE.MeshStandardMaterial({
+      color: 0xf0d060, metalness: 0.95, roughness: 0.08,
+    });
+    // Plate
+    const plateMesh = new THREE.Mesh(
+      new THREE.CylinderGeometry(2.45, 2.45, 0.12, 64, 1),
+      standMat
+    );
+    plateMesh.position.y = -0.06;
+    plateMesh.receiveShadow = true;
+    scene.add(plateMesh);
+    // Plate decorative rim ring
+    const rimMesh = new THREE.Mesh(
+      new THREE.TorusGeometry(2.35, 0.06, 8, 64),
+      rimMat
+    );
+    rimMesh.rotation.x = Math.PI / 2;
+    rimMesh.position.y = 0.0;
+    scene.add(rimMesh);
+    // Pedestal column
+    const colMesh = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.28, 0.38, 0.55, 32),
+      standMat
+    );
+    colMesh.position.y = -0.4;
+    scene.add(colMesh);
+    // Pedestal foot
+    const footMesh = new THREE.Mesh(
+      new THREE.CylinderGeometry(1.1, 1.3, 0.14, 64),
+      standMat
+    );
+    footMesh.position.y = -0.74;
+    footMesh.receiveShadow = true;
+    scene.add(footMesh);
+    // Foot rim
+    const footRimMesh = new THREE.Mesh(
+      new THREE.TorusGeometry(1.05, 0.055, 8, 64),
+      rimMat
+    );
+    footRimMesh.rotation.x = Math.PI / 2;
+    footRimMesh.position.y = -0.67;
+    scene.add(footRimMesh);
+
+    // ── Decoration overlay mesh ────────────────────────────
+    const bc = document.createElement('canvas');
+    bc.width = 512; bc.height = 512;
+    bumpCanvas.current = bc;
+
+    // Composite canvas = doodle + photo + text merged — this is what Three.js reads
+    const cc = document.createElement('canvas');
+    cc.width = 512; cc.height = 512;
+    compositeCanvas.current = cc;
+
+    const colorTex = new THREE.CanvasTexture(cc);  // ← uses composite, NOT decorCanvas
+    colorTex.needsUpdate = true;
+    const bumpTex = new THREE.CanvasTexture(bc);
+    bumpTex.needsUpdate = true;
+    decorColorTexRef.current = colorTex;
+    decorBumpTexRef.current = bumpTex;
+
+    const decorGeo = new THREE.CircleGeometry(1, 128);
+    decorGeo.rotateX(-Math.PI / 2);
+    const decorMat = new THREE.MeshStandardMaterial({
+      map: colorTex,
+      bumpMap: bumpTex,
+      bumpScale: 0.05,
+      transparent: true,
+      roughness: 0.18,
+      metalness: 0.0,
+      alphaTest: 0.01,
+    });
+    const decorMesh = new THREE.Mesh(decorGeo, decorMat);
+    decorMesh.renderOrder = 1;
+    scene.add(decorMesh);
+    decorMeshRef.current = decorMesh;
 
     // Topping instanced meshes — 6× capacity to allow multiple additive batches
     const MAX_BATCHES = 6;
@@ -430,6 +520,8 @@ const BuilderCanvas = () => {
       Object.values(toppingMats.current).forEach(m => m.dispose());
       frostingMeshesRef.current.forEach(f => { f?.geo?.dispose(); f?.mat?.dispose(); });
       layerMeshesRef.current.forEach(m => { m.geometry.dispose(); m.material.dispose(); });
+      decorColorTexRef.current?.dispose();
+      decorBumpTexRef.current?.dispose();
       renderer.dispose();
     };
   }, []);
@@ -600,6 +692,168 @@ const BuilderCanvas = () => {
 
     prevToppings.current = curr;
   }, [state.toppings]);
+
+  /* ── Load photo image into cache whenever photoUrl changes ── */
+  useEffect(() => {
+    const url = state.customization.photoUrl;
+    if (!url) { photoImgRef.current = null; return; }
+    const img = new Image();
+    img.onload = () => { photoImgRef.current = img; };
+    img.src = url;
+  }, [state.customization.photoUrl]);
+
+  /* ── Decoration overlay rebuild ────────────────────────── */
+  useEffect(() => {
+    const mesh = decorMeshRef.current;
+    const colorTex = decorColorTexRef.current;
+    const bumpTex = decorBumpTexRef.current;
+    const bc = bumpCanvas.current;
+    const cc = compositeCanvas.current;   // composite output
+    const dc = decorCanvasRef.current;    // doodle-only input
+    if (!mesh || !colorTex || !bumpTex || !bc || !cc || !dc) return;
+
+    const { customization } = state;
+    const {
+      text, textColor, textFont, textSize, textOffsetX, textOffsetY,
+      photoUrl, photoScale, photoOffsetX, photoOffsetY, photoShape,
+      photoBorder, photoBorderColor, uploadedDrawingUrl, brushColor,
+    } = customization;
+
+    const SIZE = 512;
+    const cx = SIZE / 2, cy = SIZE / 2;
+    const cctx = cc.getContext('2d');
+
+    // ── Step 1: If uploadedDrawingUrl + brushColor changed, re-tint doodle canvas ──
+    function applyTint(cb) {
+      if (!uploadedDrawingUrl) { cb(); return; }
+      const img = new Image();
+      img.onload = () => {
+        const dctx = dc.getContext('2d');
+        dctx.clearRect(0, 0, SIZE, SIZE);
+        dctx.globalCompositeOperation = 'source-over';
+        dctx.drawImage(img, 0, 0, SIZE, SIZE);
+        // Tint with brushColor
+        dctx.globalCompositeOperation = 'source-in';
+        dctx.fillStyle = brushColor;
+        dctx.fillRect(0, 0, SIZE, SIZE);
+        dctx.globalCompositeOperation = 'source-over';
+        cb();
+      };
+      img.src = uploadedDrawingUrl;
+    }
+
+    function buildComposite() {
+      // ── Step 2: Clear composite ──
+      cctx.clearRect(0, 0, SIZE, SIZE);
+
+      // ── Step 3: Doodle layer ──
+      cctx.drawImage(dc, 0, 0);
+
+      // ── Step 4: Photo layer (sync — uses cached image) ──
+      const photoImg = photoImgRef.current;
+      if (photoUrl && photoImg) {
+        // Compute display size: photoScale is zoom (1 = fill the circle fully)
+        const r = (SIZE / 2) * Math.max(0.3, photoScale);
+        // photoOffsetX/Y are pixel offsets of the image center from canvas center
+        const imgCx = cx + photoOffsetX;
+        const imgCy = cy + photoOffsetY;
+        cctx.save();
+        // Clip to circle
+        cctx.beginPath();
+        cctx.arc(cx, cy, SIZE / 2 - 4, 0, Math.PI * 2);
+        cctx.clip();
+        if (photoShape === 'circle') {
+          cctx.beginPath();
+          cctx.arc(imgCx, imgCy, r, 0, Math.PI * 2);
+          cctx.clip();
+        }
+        cctx.drawImage(photoImg, imgCx - r, imgCy - r, r * 2, r * 2);
+        cctx.restore();
+        // Piped cream border dots
+        if (photoBorder) {
+          cctx.fillStyle = photoBorderColor;
+          const steps = 36;
+          const borderR = Math.min(r + 14, SIZE / 2 - 6);
+          for (let s = 0; s < steps; s++) {
+            const a = (s / steps) * Math.PI * 2;
+            cctx.beginPath();
+            cctx.arc(cx + Math.cos(a) * borderR, cy + Math.sin(a) * borderR, 7, 0, Math.PI * 2);
+            cctx.fill();
+          }
+        }
+      }
+
+      // ── Step 5: Text layer (always fresh, no accumulation) ──
+      if (text) {
+        cctx.save();
+        cctx.font = `bold ${textSize}px ${textFont}`;
+        cctx.fillStyle = textColor;
+        cctx.textAlign = 'center';
+        cctx.textBaseline = 'middle';
+        cctx.shadowColor = 'rgba(0,0,0,0.35)';
+        cctx.shadowBlur = 6;
+        const words = text.split(' ');
+        const maxWidth = SIZE - 80;
+        const lineH = textSize * 1.35;
+        let line = '', lines = [];
+        for (const w of words) {
+          const test = line ? `${line} ${w}` : w;
+          if (cctx.measureText(test).width > maxWidth && line) { lines.push(line); line = w; }
+          else line = test;
+        }
+        if (line) lines.push(line);
+        const totalH = lines.length * lineH;
+        lines.forEach((l, i) => {
+          cctx.fillText(l, cx + textOffsetX, cy + textOffsetY - totalH / 2 + i * lineH + lineH / 2);
+        });
+        cctx.restore();
+      }
+
+      colorTex.needsUpdate = true;
+
+      // ── Step 6: Bump map (composite as white silhouette on black) ──
+      const bctx = bc.getContext('2d');
+      bctx.clearRect(0, 0, SIZE, SIZE);
+      bctx.fillStyle = '#000';
+      bctx.fillRect(0, 0, SIZE, SIZE);
+      bctx.save();
+      bctx.filter = 'blur(4px)';
+      bctx.drawImage(cc, 0, 0, SIZE, SIZE);
+      bctx.restore();
+      bumpTex.needsUpdate = true;
+    }
+
+    // If there's an uploaded drawing, re-tint first then rebuild
+    if (uploadedDrawingUrl) {
+      applyTint(buildComposite);
+    } else {
+      buildComposite();
+    }
+
+    // ── Position & scale decoration mesh with top layer ──
+    const topLayerSize = state.layers[state.layers.length - 1]?.size ?? 1.2;
+    mesh.scale.setScalar(topLayerSize);
+    mesh.position.y = state.layers.length + 0.01;
+
+  }, [
+    state.customization.text,
+    state.customization.textColor,
+    state.customization.textFont,
+    state.customization.textSize,
+    state.customization.textOffsetX,
+    state.customization.textOffsetY,
+    state.customization.photoUrl,
+    state.customization.photoScale,
+    state.customization.photoOffsetX,
+    state.customization.photoOffsetY,
+    state.customization.photoShape,
+    state.customization.photoBorder,
+    state.customization.photoBorderColor,
+    state.customization.uploadedDrawingUrl,
+    state.customization.brushColor,   // ← re-tint fires on colour change
+    state.customization.revision,
+    state.layers,
+  ]);
 
   return <div ref={mountRef} className="builder-canvas" aria-hidden="true" />;
 };
