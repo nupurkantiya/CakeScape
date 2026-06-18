@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import BuilderCanvas from '../components/builder/BuilderCanvas';
+import DecorationPanel from '../components/builder/DecorationPanel';
 import { useBuilder } from '../context/BuilderContext';
 import '../styles/builder.css';
 
@@ -315,6 +316,9 @@ function Builder() {
           </div>
         )}
       </div>
+
+      {/* ── Right: Decoration Panel ──────────────────────────── */}
+      <DecorationPanel />
     </div>
   );
 }
