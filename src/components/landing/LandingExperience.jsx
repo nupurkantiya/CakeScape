@@ -1,76 +1,109 @@
-import { useMemo } from "react"
-import { useScrollProgress } from "../../hooks/useScrollProgress"
+import { useState, useEffect, useMemo } from "react"
+import { useNavigate } from "react-router-dom"
 import CanvasRoot from "./CanvasRoot"
+import LandingBody from "./LandingBody"
+import Footer from "../layout/Footer"
 
 function LandingExperience() {
-  const scrollProgress = useScrollProgress()
+  const navigate = useNavigate()
+  const [introProgress, setIntroProgress] = useState(0)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      // Calculate progress relative to the 500vh intro scroll spacer
+      const introScrollLimit = window.innerHeight * 5
+      const currentScroll = window.scrollY
+      const progress = Math.min(Math.max(currentScroll / introScrollLimit, 0), 1)
+      setIntroProgress(progress)
+    }
+
+    window.addEventListener("scroll", handleScroll, { passive: true })
+    window.addEventListener("resize", handleScroll)
+    // Run initial calculation
+    handleScroll()
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll)
+      window.removeEventListener("resize", handleScroll)
+    }
+  }, [])
 
   const hintStyle = useMemo(
     () => ({
-      opacity: scrollProgress < 0.05 ? 1 : 0,
+      opacity: introProgress < 0.05 ? 1 : 0,
       transition: "opacity 0.5s ease",
     }),
-    [scrollProgress]
+    [introProgress]
   )
 
   const scene1TextStyle = {
     opacity:
-      scrollProgress > 0.0 && scrollProgress < 0.15
-        ? Math.min(scrollProgress / 0.08, 1)
+      introProgress > 0.0 && introProgress < 0.15
+        ? Math.min(introProgress / 0.08, 1)
         : 0,
     transition: "opacity 0.3s ease",
   }
 
   const scene2TextStyle = {
     opacity:
-      scrollProgress > 0.15 && scrollProgress < 0.35
-        ? Math.min((scrollProgress - 0.15) / 0.08, 1)
+      introProgress > 0.15 && introProgress < 0.35
+        ? Math.min((introProgress - 0.15) / 0.08, 1)
         : 0,
     transition: "opacity 0.3s ease",
   }
 
   const scene3TextStyle = {
     opacity:
-      scrollProgress > 0.35 && scrollProgress < 0.55
-        ? Math.min((scrollProgress - 0.35) / 0.08, 1)
+      introProgress > 0.35 && introProgress < 0.55
+        ? Math.min((introProgress - 0.35) / 0.08, 1)
         : 0,
     transition: "opacity 0.3s ease",
   }
 
   const scene4TextStyle = {
     opacity:
-      scrollProgress > 0.55 && scrollProgress < 0.70
-        ? Math.min((scrollProgress - 0.55) / 0.08, 1)
+      introProgress > 0.55 && introProgress < 0.70
+        ? Math.min((introProgress - 0.55) / 0.08, 1)
         : 0,
     transition: "opacity 0.3s ease",
   }
 
   const scene5TextStyle = {
     opacity:
-      scrollProgress > 0.70 && scrollProgress < 0.85
-        ? Math.min((scrollProgress - 0.70) / 0.08, 1)
+      introProgress > 0.70 && introProgress < 0.82
+        ? Math.min((introProgress - 0.70) / 0.08, 1)
         : 0,
     transition: "opacity 0.3s ease",
   }
 
   const scene6TextStyle = {
     opacity:
-      scrollProgress > 0.85
-        ? Math.min((scrollProgress - 0.85) / 0.08, 1)
+      introProgress > 0.82 && introProgress < 0.90
+        ? Math.min((introProgress - 0.82) / 0.05, 1)
         : 0,
     transition: "opacity 0.3s ease",
     pointerEvents: "none",
-    zIndex: 100
   }
 
-
+  const journeyBtnStyle = {
+    opacity:
+      introProgress > 0.82 && introProgress < 0.90
+        ? Math.min((introProgress - 0.82) / 0.05, 1)
+        : 0,
+    pointerEvents: introProgress > 0.82 && introProgress < 0.90 ? "auto" : "none",
+    transition: "opacity 0.3s ease",
+    zIndex: 100,
+  }
 
   return (
-    <>
-      <CanvasRoot scrollProgress={scrollProgress} />
+    <div className="landing-experience-page">
+      {/* 3D background canvas */}
+      <CanvasRoot scrollProgress={introProgress} />
 
+      {/* Scroll spacer to drive the 3D scroll animations */}
       <div className="landing-scroll-spacer" />
 
+      {/* Floating text segments for the intro */}
       <div className="landing-scroll-hint" style={hintStyle}>
         <span>Scroll to begin</span>
         <div className="scroll-arrow">↓</div>
@@ -96,40 +129,56 @@ function LandingExperience() {
         <p>Awaits.</p>
       </div>
       
-      <footer style={{
+      {/* Call to Action Button */}
+      <div style={{
         position: 'fixed',
-        bottom: '40px',
+        bottom: '80px',
         width: '100%',
         display: 'flex',
         justifyContent: 'center',
-        ...scene6TextStyle
+        ...journeyBtnStyle
       }}>
         <div style={{
           display: 'inline-flex',
           alignItems: 'center',
           gap: '12px',
-          padding: '12px 28px',
-          background: 'rgba(255, 255, 255, 0.08)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
+          padding: '14px 32px',
+          background: 'rgba(0, 240, 255, 0.1)',
+          border: '1px solid rgba(0, 240, 255, 0.3)',
           borderRadius: '50px',
           backdropFilter: 'blur(10px)',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-          color: 'white',
+          boxShadow: '0 0 20px rgba(0, 240, 255, 0.2)',
+          color: '#00ffff',
           fontFamily: '"Inter", sans-serif',
-          fontSize: '0.95rem',
-          letterSpacing: '1px',
+          fontSize: '1rem',
+          fontWeight: 600,
+          letterSpacing: '1.5px',
+          textTransform: 'uppercase',
           cursor: 'pointer',
-          transition: 'transform 0.3s'
+          transition: 'all 0.3s ease'
         }}
-        onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.05)'}
-        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.05)';
+          e.currentTarget.style.background = 'rgba(0, 240, 255, 0.25)';
+          e.currentTarget.style.boxShadow = '0 0 30px rgba(0, 240, 255, 0.4)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.background = 'rgba(0, 240, 255, 0.1)';
+          e.currentTarget.style.boxShadow = '0 0 20px rgba(0, 240, 255, 0.2)';
+        }}
+        onClick={() => navigate("/builder")}
         >
-          <span style={{ fontSize: '1.2rem' }}>✨</span>
-          <span style={{ fontWeight: 500 }}>Select your journey to begin</span>
-          <span style={{ fontSize: '1.2rem' }}>✨</span>
+          <span>✨ Start Customizing in 3D ✨</span>
         </div>
-      </footer>
-    </>
+      </div>
+
+      {/* 5. Rich Landing Page Content & Footer scrolls up after intro */}
+      <div className="landing-scroll-content">
+        <LandingBody />
+        <Footer />
+      </div>
+    </div>
   )
 }
 
