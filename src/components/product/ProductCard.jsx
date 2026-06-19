@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom"
+import CakeVisualPreview from "../ui/CakeVisualPreview"
 
 /**
  * ProductCard - Displays a single product in the shop grid
@@ -6,7 +7,7 @@ import { Link } from "react-router-dom"
  * @param {Object} product - Product data (id, name, price, image, etc.)
  */
 function ProductCard({ product }) {
-  const { id, name, description, price, image, category, bestseller } = product
+  const { id, name, description, price, image, category, bestseller, flavors, layers } = product
 
   return (
     <article className="product-card">
@@ -15,8 +16,11 @@ function ProductCard({ product }) {
       
       {/* Product image */}
       <div className="product-image">
-        {/* Placeholder gradient until we have real images */}
-        <div className="product-image-placeholder" />
+        <CakeVisualPreview 
+          layers={layers} 
+          flavor={flavors && flavors.length > 0 ? flavors[0] : "vanilla"} 
+          category={category} 
+        />
       </div>
 
       {/* Product info */}
@@ -34,5 +38,6 @@ function ProductCard({ product }) {
     </article>
   )
 }
+
 
 export default ProductCard
