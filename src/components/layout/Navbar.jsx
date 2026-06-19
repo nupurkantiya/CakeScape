@@ -21,6 +21,9 @@ function Navbar() {
         </div>
 
         <div className="navbar-hud-links">
+          <NavLink to="/" end className={({ isActive }) => isActive ? "active" : ""}>
+            Home
+          </NavLink>
           <NavLink to="/shop" className={({ isActive }) => isActive ? "active" : ""}>
             Shop
           </NavLink>

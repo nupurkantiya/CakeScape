@@ -4,13 +4,13 @@ import Footer from "./Footer";
 
 function Layout({ children }) {
   const location = useLocation();
-  const isHome = location.pathname === "/";
+  const isFullScreenPage = location.pathname === "/" || location.pathname === "/builder";
 
   return (
     <>
       <Navbar />
-      {isHome ? (
-        // No padding for Landing Page scroll-driven canvas
+      {isFullScreenPage ? (
+        // No padding for Full Screen Pages (Landing and Builder)
         <main className="landing-layout-container">
           {children}
         </main>
