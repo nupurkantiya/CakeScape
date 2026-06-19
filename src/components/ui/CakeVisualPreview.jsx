@@ -59,6 +59,11 @@ export default function CakeVisualPreview({ layers = 3, flavor = "vanilla", cate
   const normalizedCategory = String(category || "signature").toLowerCase();
   const neonColor = CATEGORY_COLORS[normalizedCategory] || CATEGORY_COLORS.signature;
 
+  // Use a unique ID suffix to prevent collisions on defs IDs when multiple SVGs render on one page
+  const idSuffix = React.useId().replace(/:/g, "");
+  const shadowId = `floor-shadow-${idSuffix}`;
+  const filterId = `neon-filter-${idSuffix}`;
+
   // Build specifications for the stacked tiers (bottom to top)
   const tiers = [];
   for (let i = 0; i < layerCount; i++) {
@@ -89,17 +94,17 @@ export default function CakeVisualPreview({ layers = 3, flavor = "vanilla", cate
         width="100%" 
         height="100%" 
         viewBox="0 0 200 200" 
-        style={{ overflow: "visible", filter: "drop-shadow(0 10px 20px rgba(0,0,0,0.5))" }}
+        style={{ overflow: "visible" }}
       >
         <defs>
           {/* Base shadow */}
-          <radialGradient id="floor-shadow" cx="50%" cy="50%" r="50%">
+          <radialGradient id={shadowId} cx="50%" cy="50%" r="50%">
             <stop offset="0%" stopColor="#000000" stopOpacity="0.7" />
             <stop offset="100%" stopColor="#000000" stopOpacity="0" />
           </radialGradient>
           
           {/* Neon glow filter */}
-          <filter id="neon-glow-filter" x="-20%" y="-20%" width="140%" height="140%">
+          <filter id={filterId} x="-20%" y="-20%" width="140%" height="140%">
             <feGaussianBlur stdDeviation="3" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
@@ -109,7 +114,7 @@ export default function CakeVisualPreview({ layers = 3, flavor = "vanilla", cate
         </defs>
 
         {/* Shadow under the bottom-most tier */}
-        <ellipse cx="100" cy="162" rx="70" ry="20" fill="url(#floor-shadow)" />
+        <ellipse cx="100" cy="162" rx="70" ry="20" fill={`url(#${shadowId})`} />
 
         {/* Stacked Tiers */}
         {tiers.map((tier, idx) => {
@@ -119,7 +124,7 @@ export default function CakeVisualPreview({ layers = 3, flavor = "vanilla", cate
 
           // Unique gradient ID for the side of this color
           const cleanHex = tier.color.replace("#", "");
-          const gradId = `side-grad-${cleanHex}-${idx}`;
+          const gradId = `side-grad-${cleanHex}-${idx}-${idSuffix}`;
 
           return (
             <g key={idx} className="cake-tier">
@@ -166,7 +171,7 @@ export default function CakeVisualPreview({ layers = 3, flavor = "vanilla", cate
                 stroke={neonColor} 
                 strokeWidth="1.2" 
                 strokeDasharray="4 6"
-                filter="url(#neon-glow-filter)"
+                filter={`url(#${filterId})`}
                 opacity="0.85"
               />
 
@@ -204,7 +209,7 @@ export default function CakeVisualPreview({ layers = 3, flavor = "vanilla", cate
                     cy={tier.cy - 10} 
                     r="5.5" 
                     fill="#ff2e88" 
-                    filter="url(#neon-glow-filter)"
+                    filter={`url(#${filterId})`}
                     style={{ filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.4))" }} 
                   />
                   {/* Cherry stem */}

@@ -1,20 +1,20 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useBuilder } from '../../context/BuilderContext';
 
-/* ── Constants ─────────────────────────────────────────────────── */
+/* ── Constants ───*/
 const FONTS = [
-  { id: 'cursive',                   label: 'Playful', preview: 'Aa' },
-  { id: 'Georgia, serif',            label: 'Elegant', preview: 'Aa' },
-  { id: 'Arial, sans-serif',         label: 'Modern',  preview: 'Aa' },
-  { id: '"Courier New", monospace',  label: 'Retro',   preview: 'Aa' },
+  { id: 'cursive', label: 'Playful', preview: 'Aa' },
+  { id: 'Georgia, serif', label: 'Elegant', preview: 'Aa' },
+  { id: 'Arial, sans-serif', label: 'Modern', preview: 'Aa' },
+  { id: '"Courier New", monospace', label: 'Retro', preview: 'Aa' },
 ];
-const TEXT_COLOR_PRESETS   = ['#ffffff','#fff8dc','#ff85b3','#ff2e88','#00f0ff','#9b5cff','#ffb347','#c8e6c9'];
-const BRUSH_COLOR_PRESETS  = ['#ff2e88','#00f0ff','#9b5cff','#ffb347','#ffffff','#ff4d4d','#7db36a','#c68642'];
-const BORDER_COLOR_PRESETS = ['#fff5e1','#ffffff','#ff85b3','#ffb347','#00f0ff','#c8a97a','#9b5cff','#ff4d4d'];
+const TEXT_COLOR_PRESETS = ['#ffffff', '#fff8dc', '#ff85b3', '#ff2e88', '#00f0ff', '#9b5cff', '#ffb347', '#c8e6c9'];
+const BRUSH_COLOR_PRESETS = ['#ff2e88', '#00f0ff', '#9b5cff', '#ffb347', '#ffffff', '#ff4d4d', '#7db36a', '#c68642'];
+const BORDER_COLOR_PRESETS = ['#fff5e1', '#ffffff', '#ff85b3', '#ffb347', '#00f0ff', '#c8a97a', '#9b5cff', '#ff4d4d'];
 const SIZE_TO_FRAME = { 0.8: 136, 1.2: 168, 1.6: 200, 2.0: 228 };
-const SIZE_LABELS   = { 0.8: 'S',  1.2: 'M',  1.6: 'L',  2.0: 'XL' };
+const SIZE_LABELS = { 0.8: 'S', 1.2: 'M', 1.6: 'L', 2.0: 'XL' };
 
-/* ── Colour Swatch Strip ────────────────────────────────────────── */
+/* ── Colour Swatch Strip ──*/
 function ColorStrip({ colors, value, onChange }) {
   return (
     <div className="dc-color-strip">
@@ -40,7 +40,7 @@ function ColorStrip({ colors, value, onChange }) {
   );
 }
 
-/* ── Slider Row ─────────────────────────────────────────────────── */
+/* ── Slider Row ─────*/
 function SliderRow({ label, value, min, max, step = 1, onChange }) {
   return (
     <div className="dc-slider-row">
@@ -57,7 +57,7 @@ function SliderRow({ label, value, min, max, step = 1, onChange }) {
   );
 }
 
-/* ── Text Tab ───────────────────────────────────────────────────── */
+/* ── Text Tab ───── */
 function TextTab({ customization, dispatch }) {
   const { text, textColor, textFont, textSize, textOffsetX, textOffsetY } = customization;
   const set = (payload) => dispatch({ type: 'UPDATE_CUSTOMIZATION', payload });
@@ -97,7 +97,7 @@ function TextTab({ customization, dispatch }) {
 
       <p className="dc-section-label">Position</p>
       <SliderRow label="Horizontal" value={textOffsetX} min={-180} max={180} onChange={(v) => set({ textOffsetX: v })} />
-      <SliderRow label="Vertical"   value={textOffsetY} min={-180} max={180} onChange={(v) => set({ textOffsetY: v })} />
+      <SliderRow label="Vertical" value={textOffsetY} min={-180} max={180} onChange={(v) => set({ textOffsetY: v })} />
 
       {text && (
         <button className="dc-clear-btn" onClick={() => set({ text: '' })}>Clear Text</button>
@@ -109,7 +109,7 @@ function TextTab({ customization, dispatch }) {
 /* ── Doodle Tab ─────────────────────────────────────────────────── */
 function DoodleTab({ customization, dispatch, decorCanvasRef }) {
   const { doodleMode, uploadedDrawingUrl, brushColor, brushSize } = customization;
-  const padRef    = useRef(null);
+  const padRef = useRef(null);
   const isDrawing = useRef(false);
   const set = (payload) => dispatch({ type: 'UPDATE_CUSTOMIZATION', payload });
 
@@ -129,7 +129,7 @@ function DoodleTab({ customization, dispatch, decorCanvasRef }) {
     const client = e.touches ? e.touches[0] : e;
     return {
       x: ((client.clientX - rect.left) / rect.width) * 512,
-      y: ((client.clientY - rect.top)  / rect.height) * 512,
+      y: ((client.clientY - rect.top) / rect.height) * 512,
     };
   };
 
@@ -175,7 +175,7 @@ function DoodleTab({ customization, dispatch, decorCanvasRef }) {
   return (
     <div className="dc-tab-body">
       <div className="dc-mode-toggle">
-        <button className={`dc-mode-btn ${doodleMode === 'draw'   ? 'active' : ''}`} onClick={() => set({ doodleMode: 'draw' })}>🖌️ Hand Draw</button>
+        <button className={`dc-mode-btn ${doodleMode === 'draw' ? 'active' : ''}`} onClick={() => set({ doodleMode: 'draw' })}>🖌️ Hand Draw</button>
         <button className={`dc-mode-btn ${doodleMode === 'upload' ? 'active' : ''}`} onClick={() => set({ doodleMode: 'upload' })}>📤 Upload Outline</button>
       </div>
 
@@ -220,12 +220,12 @@ function PhotoTab({ customization, dispatch, topLayerSize }) {
   const set = (payload) => dispatch({ type: 'UPDATE_CUSTOMIZATION', payload });
 
   // Drag state (local — updates context on every move for live 3D preview)
-  const [dragging, setDragging]   = useState(false);
-  const dragStartRef              = useRef(null);
-  const offsetAtDragStart         = useRef({ x: 0, y: 0 });
+  const [dragging, setDragging] = useState(false);
+  const dragStartRef = useRef(null);
+  const offsetAtDragStart = useRef({ x: 0, y: 0 });
 
-  const frameSize  = SIZE_TO_FRAME[topLayerSize] ?? 168;
-  const sizeLabel  = SIZE_LABELS[topLayerSize]   ?? 'M';
+  const frameSize = SIZE_TO_FRAME[topLayerSize] ?? 168;
+  const sizeLabel = SIZE_LABELS[topLayerSize] ?? 'M';
 
   const handleUpload = (e) => {
     const file = e.target.files?.[0];
@@ -256,9 +256,9 @@ function PhotoTab({ customization, dispatch, topLayerSize }) {
   const onMouseUp = () => setDragging(false);
 
   // Map canvas-space offsets back to frame-space for the CSS preview
-  const s2f         = frameSize / 512;
-  const previewOX   = photoOffsetX * s2f;
-  const previewOY   = photoOffsetY * s2f;
+  const s2f = frameSize / 512;
+  const previewOX = photoOffsetX * s2f;
+  const previewOY = photoOffsetY * s2f;
   const previewSize = frameSize * photoScale;
 
   return (
@@ -337,9 +337,9 @@ function PhotoTab({ customization, dispatch, topLayerSize }) {
 
 /* ── Main Panel ─────────────────────────────────────────────────── */
 const TABS = [
-  { id: 'text',   label: 'Write', icon: '✍️' },
-  { id: 'doodle', label: 'Draw',  icon: '🎨' },
-  { id: 'photo',  label: 'Photo', icon: '🖼️' },
+  { id: 'text', label: 'Write', icon: '✍️' },
+  { id: 'doodle', label: 'Draw', icon: '🎨' },
+  { id: 'photo', label: 'Photo', icon: '🖼️' },
 ];
 
 export default function DecorationPanel() {
@@ -377,9 +377,9 @@ export default function DecorationPanel() {
         </div>
 
         {/* Tab body */}
-        {activeTab === 'text'   && <TextTab   customization={customization} dispatch={dispatch} />}
+        {activeTab === 'text' && <TextTab customization={customization} dispatch={dispatch} />}
         {activeTab === 'doodle' && <DoodleTab customization={customization} dispatch={dispatch} decorCanvasRef={decorCanvasRef} />}
-        {activeTab === 'photo'  && <PhotoTab  customization={customization} dispatch={dispatch} topLayerSize={topLayerSize} />}
+        {activeTab === 'photo' && <PhotoTab customization={customization} dispatch={dispatch} topLayerSize={topLayerSize} />}
 
         {/* Footer */}
         <div className="decor-footer">

@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom"
 import { useCart } from "../context/CartContext"
+import CakeVisualPreview from "../components/ui/CakeVisualPreview"
 
 // ================================
 // CART PAGE COMPONENT
@@ -68,7 +69,11 @@ function Cart() {
               
               {/* Product Image */}
               <div className="cart-item-image">
-                <img src={product.image} alt={product.name} />
+                <CakeVisualPreview 
+                  layers={product.layers || 3} 
+                  flavor={product.flavor || (product.flavors && product.flavors[0]) || "vanilla"} 
+                  category={product.category || "signature"} 
+                />
               </div>
               
               {/* Product Info */}
