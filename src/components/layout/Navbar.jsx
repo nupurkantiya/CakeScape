@@ -1,17 +1,42 @@
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
+import { useScrollProgress } from "../../hooks/useScrollProgress";
+import { useCart } from "../../context/CartContext";
 
 function Navbar() {
-  return (
-    <nav className="navbar">
-      <div className="navbar-logo">
-        <Link to="/">CakeScape</Link>
-      </div>
+  const location = useLocation();
+  const scrollProgress = useScrollProgress();
+  const { totalItems } = useCart();
 
-      <div className="navbar-links">
-        <NavLink to="/shop">Shop</NavLink>
-        <NavLink to="/builder">Build Cake</NavLink>
-        <NavLink to="/cart">Cart</NavLink>
-        <NavLink to="/login">Login</NavLink>
+  const isHome = location.pathname === "/";
+  // Fade in navbar after scrolling past the initial screen intro start (2%)
+  const isVisible = !isHome || scrollProgress > 0.02;
+
+  return (
+    <nav className={`navbar-hud ${isVisible ? "is-visible" : "is-hidden"}`}>
+      <div className="navbar-hud-content">
+        <div className="navbar-hud-logo">
+          <Link to="/">
+            CakeScape<span className="logo-dot">.</span>
+          </Link>
+        </div>
+
+        <div className="navbar-hud-links">
+          <NavLink to="/shop" className={({ isActive }) => isActive ? "active" : ""}>
+            Shop
+          </NavLink>
+          <NavLink to="/builder" className={({ isActive }) => isActive ? "active" : ""}>
+            Build Cake
+          </NavLink>
+          <NavLink to="/creator-hub" className={({ isActive }) => isActive ? "active" : ""}>
+            Creator Hub
+          </NavLink>
+          <NavLink to="/cart" className={({ isActive }) => `navbar-hud-cart ${isActive ? "active" : ""}`}>
+            Cart
+            {totalItems > 0 && (
+              <span className="navbar-cart-badge animate-pulse">{totalItems}</span>
+            )}
+          </NavLink>
+        </div>
       </div>
     </nav>
   );
