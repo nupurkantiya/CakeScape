@@ -24,13 +24,13 @@
   border-radius: 30px;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  
+
   display: flex;
   justify-content: center;
   align-items: center;
   padding: 0 30px;
   z-index: 1000;
-  box-shadow: 
+  box-shadow:
     0 10px 30px rgba(0, 0, 0, 0.5),
     inset 0 1px 0 rgba(255, 255, 255, 0.1);
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -285,7 +285,8 @@
 }
 
 .landing-scroll-spacer {
-  height: 500vh; /* 5 viewports of scroll room */
+  height: 500vh;
+  /* 5 viewports of scroll room */
   pointer-events: none;
 }
 
@@ -309,30 +310,48 @@
 }
 
 @keyframes bounceArrow {
-  0%, 100% { transform: translateY(0); opacity: 0.6; }
-  50% { transform: translateY(10px); opacity: 1; }
+
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: translateY(10px);
+    opacity: 1;
+  }
 }
 
-.scene1-text, .scene2-text, .scene3-text, .scene4-text, .scene5-text, .scene6-text {
+.scene1-text,
+.scene2-text,
+.scene3-text,
+.scene4-text,
+.scene5-text,
+.scene6-text {
   position: fixed;
   bottom: 22%;
   width: 100%;
   text-align: center;
   pointer-events: none;
   z-index: 10;
-  color: #ffffff;
-  font-size: 2.2rem;
+  color: rgba(255, 255, 255, 0.603);
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 1.2rem;
   font-weight: 300;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.18em;
   line-height: 1.8;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+  text-transform: uppercase;
 }
 
 .scene6-text {
-  font-weight: 700;
-  font-size: 2.8rem;
+  font-weight: 600;
+  font-size: 2.2rem;
   color: var(--color-neon-cyan, #00f0ff);
-  text-shadow: 0 0 25px rgba(0, 240, 255, 0.5);
+  opacity: 0.95;
+  text-shadow: 0 0 15px rgba(0, 240, 255, 0.35);
+  letter-spacing: 0.2em;
 }
 
 /* ================================================================
@@ -589,8 +608,8 @@
 /* Newsletter */
 .newsletter-card-wrapper {
   background: radial-gradient(circle at top left, rgba(255, 0, 127, 0.06), transparent 50%),
-              radial-gradient(circle at bottom right, rgba(0, 240, 255, 0.06), transparent 50%),
-              rgba(255, 255, 255, 0.01);
+    radial-gradient(circle at bottom right, rgba(0, 240, 255, 0.06), transparent 50%),
+    rgba(255, 255, 255, 0.01);
   border: 1px solid rgba(255, 255, 255, 0.04);
   border-radius: 30px;
   padding: 60px 40px;
@@ -802,9 +821,26 @@
   box-shadow: 0 0 10px rgba(255, 255, 255, 0.15);
 }
 
-.cake-ring.tier-1 { width: 80px; height: 80px; transform: translateZ(-20px); border-color: rgba(0, 240, 255, 0.5); }
-.cake-ring.tier-2 { width: 60px; height: 60px; transform: translateZ(0px); border-color: rgba(255, 0, 127, 0.5); }
-.cake-ring.tier-3 { width: 40px; height: 40px; transform: translateZ(20px); border-color: rgba(255, 255, 255, 0.6); }
+.cake-ring.tier-1 {
+  width: 80px;
+  height: 80px;
+  transform: translateZ(-20px);
+  border-color: rgba(0, 240, 255, 0.5);
+}
+
+.cake-ring.tier-2 {
+  width: 60px;
+  height: 60px;
+  transform: translateZ(0px);
+  border-color: rgba(255, 0, 127, 0.5);
+}
+
+.cake-ring.tier-3 {
+  width: 40px;
+  height: 40px;
+  transform: translateZ(20px);
+  border-color: rgba(255, 255, 255, 0.6);
+}
 
 .hub-preview-overlay {
   position: absolute;
@@ -1219,14 +1255,29 @@
 
 /* Generic Animation helpers */
 @keyframes slideUp {
-  from { transform: translateY(40px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); opacity: 0.9; }
-  100% { transform: scale(1.05); opacity: 1; }
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+
+  100% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
 }
+
 .animate-pulse {
   animation: pulse 1.5s infinite alternate;
 }
@@ -1236,8 +1287,15 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ================================================================
@@ -1250,15 +1308,15 @@
     padding: 0 15px;
     height: 50px;
   }
-  
+
   .navbar-hud-logo a {
     font-size: 1rem;
   }
-  
+
   .navbar-hud-links {
     gap: 12px;
   }
-  
+
   .navbar-hud-links a {
     font-size: 0.75rem;
     padding: 4px 8px;
@@ -1286,17 +1344,17 @@
   .navbar-hud-logo {
     display: none;
   }
-  
+
   .navbar-hud-content {
     justify-content: center;
   }
-  
+
   .navbar-hud-links {
     gap: 8px;
     width: 100%;
     justify-content: space-around;
   }
-  
+
   .navbar-hud-links a {
     font-size: 0.7rem;
     padding: 4px 6px;

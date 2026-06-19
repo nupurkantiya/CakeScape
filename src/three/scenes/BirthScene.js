@@ -32,16 +32,11 @@ function createTextSprite() {
   context.clearRect(0, 0, canvas.width, canvas.height)
   context.textAlign = "center"
   context.textBaseline = "middle"
-  context.shadowColor = "rgba(255, 192, 120, 0.45)"
-  context.shadowBlur = 42
+  context.shadowColor = "rgba(0, 0, 0, 0.5)"
+  context.shadowBlur = 10
 
-  const gradient = context.createLinearGradient(0, 0, canvas.width, 0)
-  gradient.addColorStop(0, "rgba(244, 236, 224, 0.88)")
-  gradient.addColorStop(0.6, "rgba(255, 227, 178, 0.98)")
-  gradient.addColorStop(1, "rgba(255, 204, 148, 0.85)")
-
-  context.fillStyle = gradient
-  context.font = "600 106px 'Georgia', 'Times New Roman', serif"
+  context.fillStyle = "rgba(255, 255, 255, 0.65)"
+  context.font = "300 96px 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
   context.fillText("From the purest ingredients...", canvas.width / 2, canvas.height / 2)
 
   const texture = new THREE.CanvasTexture(canvas)
