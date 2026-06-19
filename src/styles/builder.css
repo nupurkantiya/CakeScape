@@ -50,7 +50,7 @@
 /* ── Floating Sidebar Panel ──────────────────────────────────── */
 .builder-ui-panel {
   position: absolute;
-  top: 24px;
+  top: 95px;
   left: 24px;
   bottom: 24px;
   width: 340px;
@@ -709,7 +709,7 @@
 /* ── Panel Shell ─────────────────────────────────────────────── */
 .decor-panel {
   position: absolute;
-  top: 24px;
+  top: 95px;
   right: 24px;
   bottom: 24px;
   width: 320px;
@@ -1322,3 +1322,58 @@
   object-fit: cover;
   border-radius: 0;
 }
+
+/* ================================================================
+   MOBILE & TABLET RESPONSIVENESS FOR 3D BUILDER
+   ================================================================ */
+@media (max-width: 1024px) {
+  .builder-page {
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+    padding-top: 90px;
+    padding-bottom: 40px;
+  }
+
+  .builder-canvas {
+    position: relative;
+    width: 100%;
+    height: 50vh;
+    min-height: 350px;
+    flex-shrink: 0;
+  }
+
+  .builder-ui-panel, .decor-panel {
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    width: calc(100% - 32px);
+    margin: 16px auto;
+    height: 600px;
+    max-height: none;
+    flex-shrink: 0;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+  
+  .builder-ui-panel {
+    order: 2;
+  }
+
+  .decor-panel {
+    order: 3;
+  }
+}
+
+@media (max-width: 600px) {
+  .builder-ui-panel, .decor-panel {
+    width: calc(100% - 16px);
+    margin: 8px auto;
+    height: 550px;
+  }
+}
+

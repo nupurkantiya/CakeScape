@@ -1238,3 +1238,66 @@
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* ================================================================
+   MOBILE & TABLET RESPONSIVENESS
+   ================================================================ */
+@media (max-width: 768px) {
+  .navbar-hud {
+    top: 10px;
+    width: 95%;
+    padding: 0 15px;
+    height: 50px;
+  }
+  
+  .navbar-hud-logo a {
+    font-size: 1rem;
+  }
+  
+  .navbar-hud-links {
+    gap: 12px;
+  }
+  
+  .navbar-hud-links a {
+    font-size: 0.75rem;
+    padding: 4px 8px;
+  }
+
+  .footer-hud {
+    padding: 40px 20px 20px;
+  }
+
+  .footer-hud-content {
+    grid-template-columns: 1fr;
+    gap: 30px;
+    margin-bottom: 30px;
+  }
+
+  .footer-hud-bottom {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+    padding-top: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar-hud-logo {
+    display: none;
+  }
+  
+  .navbar-hud-content {
+    justify-content: center;
+  }
+  
+  .navbar-hud-links {
+    gap: 8px;
+    width: 100%;
+    justify-content: space-around;
+  }
+  
+  .navbar-hud-links a {
+    font-size: 0.7rem;
+    padding: 4px 6px;
+  }
+}
