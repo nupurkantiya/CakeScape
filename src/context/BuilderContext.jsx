@@ -158,6 +158,22 @@ function builderReducer(state, action) {
       };
     }
 
+    case 'LOAD_PRESET': {
+      const ctx = decorCanvas.getContext('2d');
+      ctx.clearRect(0, 0, decorCanvas.width, decorCanvas.height);
+      // If the preset has a doodle or drawing url, draw it or let BuilderCanvas handle it.
+      return {
+        ...state,
+        layers: action.payload.layers || state.layers,
+        toppings: action.payload.toppings || state.toppings,
+        customization: {
+          ...state.customization,
+          ...action.payload.customization,
+          revision: state.customization.revision + 1,
+        },
+      };
+    }
+
     default:
       return state;
   }
