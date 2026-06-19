@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useParams, Link } from "react-router-dom"
 import { getProductById } from "../data/products"
 import { useCart } from "../context/CartContext"
+import CakeVisualPreview from "../components/ui/CakeVisualPreview"
 
 function ProductDetails() {
   // Get product ID from URL params
@@ -45,7 +46,11 @@ function ProductDetails() {
       <div className="product-details-container">
         {/* Product Image */}
         <div className="product-details-image">
-          <div className="product-image-placeholder large" />
+          <CakeVisualPreview 
+            layers={layers} 
+            flavor={flavors && flavors.length > 0 ? flavors[0] : "vanilla"} 
+            category={category} 
+          />
           {bestseller && <span className="product-badge">Bestseller</span>}
         </div>
 

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBuilder } from "../context/BuilderContext";
 import { useCart } from "../context/CartContext";
+import CakeVisualPreview from "../components/ui/CakeVisualPreview";
 
 const COMMUNITY_DESIGNS = [
   {
@@ -266,7 +267,7 @@ export default function CreatorHub() {
           onClick={() => setActiveTab("orders")}
         >
           <span className="btn-icon">🛸</span>
-          Cyber-Tracker
+          Order Tracker
         </button>
       </div>
 
@@ -279,13 +280,13 @@ export default function CreatorHub() {
                 {/* 3D Visualizer Thumbnail */}
                 <div
                   className="hub-card-preview"
-                  style={{ background: preset.themeColor }}
+                  style={{ background: preset.themeColor, padding: "10px" }}
                 >
-                  <div className="hub-preview-cake">
-                    <div className="cake-ring tier-1"></div>
-                    <div className="cake-ring tier-2"></div>
-                    <div className="cake-ring tier-3"></div>
-                  </div>
+                  <CakeVisualPreview 
+                    layers={preset.spec.layers.length} 
+                    flavor={preset.spec.layers[0].flavor} 
+                    category="signature" 
+                  />
                   <div className="hub-preview-overlay">
                     <span className="spec-label">
                       {preset.spec.layers.length} tiers • {preset.spec.layers[0].flavor}
@@ -368,10 +369,10 @@ export default function CreatorHub() {
                   </div>
                   <div className="progress-steps">
                     {[
-                      { label: "Bake Core", icon: "🧪" },
-                      { label: "Cryo-Frosting", icon: "❄️" },
-                      { label: "Decorating", icon: "✍️" },
-                      { label: "En Route", icon: "🛸" },
+                      { label: "Baking Sponge", icon: "🍰" },
+                      { label: "Chilling & Frosting", icon: "❄️" },
+                      { label: "Adding Toppings", icon: "✍️" },
+                      { label: "Out for Delivery", icon: "🚚" },
                     ].map((step, idx) => {
                       const isActive = idx <= order.step;
                       const isCurrent = idx === order.step;
