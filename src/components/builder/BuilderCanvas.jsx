@@ -273,15 +273,21 @@ const BuilderCanvas = () => {
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x0f0f14);
 
-    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
+    const container = mountRef.current;
+    const width = container ? container.clientWidth : window.innerWidth;
+    const height = container ? container.clientHeight : window.innerHeight;
+
+    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 100);
     camera.position.set(0, 5, 14);
     camera.lookAt(0, 2, 0);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
-    mountRef.current.appendChild(renderer.domElement);
+    if (container) {
+      container.appendChild(renderer.domElement);
+    }
 
     // OrbitControls — rotate / zoom / pan
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -505,9 +511,13 @@ const BuilderCanvas = () => {
     tick();
 
     const onResize = () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
+      const container = mountRef.current;
+      if (!container) return;
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      camera.aspect = width / height;
       camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setSize(width, height);
     };
     window.addEventListener('resize', onResize);
 
