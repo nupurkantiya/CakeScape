@@ -283,7 +283,7 @@ export default function CreatorHub() {
                   style={{ background: preset.themeColor, padding: "10px" }}
                 >
                   <CakeVisualPreview 
-                    layers={preset.spec.layers.length} 
+                    layers={preset.spec.layers} 
                     flavor={preset.spec.layers[0].flavor} 
                     category="signature" 
                   />
