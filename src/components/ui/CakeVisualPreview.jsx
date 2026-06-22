@@ -48,11 +48,12 @@ function adjustColor(hex, percent) {
 }
 
 export default function CakeVisualPreview({ layers = 3, flavor = "vanilla", category = "signature" }) {
-  // Normalize layers count (ensure 1 to 4)
-  const layerCount = Math.min(Math.max(Number(layers) || 2, 1), 4);
+  // Normalize layers count (can be a number or a spec array)
+  const isCustomSpec = Array.isArray(layers);
+  const layerCount = isCustomSpec ? layers.length : Math.min(Math.max(Number(layers) || 2, 1), 4);
   
   // Normalize flavor to lookup color
-  const normalizedFlavor = String(flavor || "vanilla").toLowerCase().replace("-", "_");
+  const normalizedFlavor = String(flavor || "vanilla").toLowerCase().replace("-", "_").replace(" ", "_");
   const baseColor = FLAVOR_COLORS[normalizedFlavor] || FLAVOR_COLORS.vanilla;
   
   // Normalize category to lookup neon accent color
@@ -76,6 +77,19 @@ export default function CakeVisualPreview({ layers = 3, flavor = "vanilla", cate
     
     // Y center position for this tier's top face
     const cy = 150 - i * 26;
+
+    let tierColor = baseColor;
+    if (isCustomSpec) {
+      const layerData = layers[i];
+      if (layerData) {
+        if (layerData.customColor) {
+          tierColor = layerData.customColor;
+        } else {
+          const lFlavor = String(layerData.flavor || "vanilla").toLowerCase().replace("-", "_").replace(" ", "_");
+          tierColor = FLAVOR_COLORS[lFlavor] || FLAVOR_COLORS.vanilla;
+        }
+      }
+    }
     
     tiers.push({
       width: tierWidth,
@@ -83,7 +97,7 @@ export default function CakeVisualPreview({ layers = 3, flavor = "vanilla", cate
       rx,
       ry,
       cy,
-      color: baseColor,
+      color: tierColor,
       index: i
     });
   }
