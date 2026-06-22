@@ -1360,3 +1360,197 @@
     padding: 4px 6px;
   }
 }
+
+/* ================================================================
+   HUD NAVBAR CONTROLS
+   ================================================================ */
+.navbar-hud-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hud-select {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 4px 8px;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.hud-select:hover {
+  border-color: var(--color-neon-purple);
+  box-shadow: 0 0 8px rgba(155, 92, 255, 0.3);
+}
+
+.hud-select option {
+  background: #181824;
+  color: #fff;
+}
+
+.hud-theme-toggle {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+}
+
+.hud-theme-toggle:hover {
+  border-color: var(--color-neon-pink);
+  transform: scale(1.1);
+  box-shadow: 0 0 10px rgba(255, 46, 136, 0.4);
+}
+
+/* ================================================================
+   LIGHT THEME VARIABLES & OVERRIDES
+   ================================================================ */
+.light-theme {
+  --color-bg-primary: #f8f9fa;
+  --color-bg-secondary: #ffffff;
+  --color-bg-elevated: #f1f3f5;
+  --color-text-primary: #1d1d1f;
+  --color-text-muted: #6e6e73;
+  --color-border-subtle: rgba(0, 0, 0, 0.08);
+  --color-neon-pink: #d91b5c;
+  --color-neon-purple: #7928ca;
+  --color-neon-cyan: #0070f3;
+}
+
+/* Base Light Mode Adjustments */
+.light-theme body {
+  background-color: var(--color-bg-primary);
+  color: var(--color-text-primary);
+}
+
+.light-theme select option {
+  background: #ffffff;
+  color: #1d1d1f;
+}
+
+.light-theme .navbar-hud {
+  background: rgba(255, 255, 255, 0.75);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.light-theme .navbar-hud-logo a {
+  color: #1d1d1f;
+  text-shadow: none;
+}
+
+.light-theme .navbar-hud-links a {
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.light-theme .navbar-hud-links a:hover {
+  color: var(--color-neon-cyan);
+  text-shadow: none;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.light-theme .hud-select {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.08);
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.light-theme .hud-select:hover {
+  border-color: var(--color-neon-purple);
+  box-shadow: 0 0 8px rgba(121, 40, 202, 0.15);
+}
+
+.light-theme .hud-theme-toggle {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+.light-theme .hud-theme-toggle:hover {
+  border-color: var(--color-neon-pink);
+  box-shadow: 0 0 10px rgba(217, 27, 92, 0.2);
+}
+
+.light-theme .navbar-hud-cart.active {
+  color: var(--color-neon-pink);
+}
+
+/* Page Components Light Theme styling */
+.light-theme .builder-ui-panel,
+.light-theme .decor-panel-inner,
+.light-theme .shop-card,
+.light-theme .cart-item,
+.light-theme .cart-summary,
+.light-theme .hub-card,
+.light-theme .hub-panel {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(0, 0, 0, 0.08);
+  color: var(--color-text-primary);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+}
+
+.light-theme .layer-card,
+.light-theme .frosting-card,
+.light-theme .topping-option-btn,
+.light-theme .decor-tab,
+.light-theme .builder-tab {
+  background: rgba(0, 0, 0, 0.03);
+  border-color: rgba(0, 0, 0, 0.06);
+  color: var(--color-text-primary);
+}
+
+.light-theme .layer-card:hover,
+.light-theme .frosting-card:hover,
+.light-theme .topping-option-btn:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.light-theme .decor-tab.active,
+.light-theme .builder-tab.active {
+  background: var(--color-bg-secondary);
+  border-color: var(--color-neon-purple);
+  box-shadow: 0 4px 12px rgba(121, 40, 202, 0.15);
+}
+
+.light-theme .cart-title,
+.light-theme .shop-title,
+.light-theme .hub-title,
+.light-theme .decor-title {
+  color: var(--color-text-primary);
+}
+
+.light-theme .footer-hud {
+  background: #f1f3f5;
+  color: #6e6e73;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.light-theme .footer-hud-title,
+.light-theme .footer-logo a {
+  color: #1d1d1f;
+}
+
+.light-theme .footer-hud-links a {
+  color: #6e6e73;
+}
+
+.light-theme .footer-hud-links a:hover {
+  color: var(--color-neon-pink);
+}
+
+.light-theme .footer-hud-bottom {
+  border-top-color: rgba(0, 0, 0, 0.05);
+}

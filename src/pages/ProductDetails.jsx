@@ -2,12 +2,14 @@ import { useState } from "react"
 import { useParams, Link } from "react-router-dom"
 import { getProductById } from "../data/products"
 import { useCart } from "../context/CartContext"
+import { useLocale } from "../context/LocaleContext"
 import CakeVisualPreview from "../components/ui/CakeVisualPreview"
 
 function ProductDetails() {
   // Get product ID from URL params
   const { id } = useParams()
   const product = getProductById(id)
+  const { formatPrice, t } = useLocale()
   
   // Get addItem function from cart context
   const { addItem } = useCart()
@@ -20,9 +22,9 @@ function ProductDetails() {
     return (
       <div className="product-details-page">
         <div className="product-not-found">
-          <h1>Product Not Found</h1>
-          <p>The cake you're looking for doesn't exist.</p>
-          <Link to="/shop" className="back-btn">Back to Shop</Link>
+          <h1>{t("productNotFound")}</h1>
+          <p>{t("cakeNotExist")}</p>
+          <Link to="/shop" className="back-btn">{t("backToShop")}</Link>
         </div>
       </div>
     )
@@ -41,7 +43,7 @@ function ProductDetails() {
 
   return (
     <div className="product-details-page">
-      <Link to="/shop" className="back-link">← Back to Shop</Link>
+      <Link to="/shop" className="back-link">← {t("backToShop")}</Link>
       
       <div className="product-details-container">
         {/* Product Image */}
@@ -51,7 +53,7 @@ function ProductDetails() {
             flavor={flavors && flavors.length > 0 ? flavors[0] : "vanilla"} 
             category={category} 
           />
-          {bestseller && <span className="product-badge">Bestseller</span>}
+          {bestseller && <span className="product-badge">{t("bestseller")}</span>}
         </div>
 
         {/* Product Info */}
@@ -63,23 +65,23 @@ function ProductDetails() {
           {/* Product specs */}
           <div className="product-specs">
             <div className="spec-item">
-              <span className="spec-label">Layers</span>
+              <span className="spec-label">{t("layers")}</span>
               <span className="spec-value">{layers}</span>
             </div>
             <div className="spec-item">
-              <span className="spec-label">Flavors</span>
+              <span className="spec-label">{t("flavors")}</span>
               <span className="spec-value">{flavors.join(", ")}</span>
             </div>
           </div>
 
           {/* Price and Add to Cart */}
           <div className="product-details-footer">
-            <span className="product-details-price">${price.toFixed(2)}</span>
+            <span className="product-details-price">{formatPrice(price)}</span>
             <button 
               className={`add-to-cart-btn ${added ? "added" : ""}`}
               onClick={handleAddToCart}
             >
-              {added ? "Added!" : "Add to Cart"}
+              {added ? t("added") : t("addToCart")}
             </button>
           </div>
         </div>

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useBuilder } from "../context/BuilderContext";
 import { useCart } from "../context/CartContext";
+import { useLocale } from "../context/LocaleContext";
 import CakeVisualPreview from "../components/ui/CakeVisualPreview";
 
 const COMMUNITY_DESIGNS = [
@@ -182,6 +183,7 @@ export default function CreatorHub() {
   const navigate = useNavigate();
   const { dispatch: builderDispatch } = useBuilder();
   const { addItem } = useCart();
+  const { formatPrice, t } = useLocale();
 
   const [activeTab, setActiveTab] = useState("gallery");
   const [designs, setDesigns] = useState(COMMUNITY_DESIGNS);
@@ -267,7 +269,7 @@ export default function CreatorHub() {
           onClick={() => setActiveTab("orders")}
         >
           <span className="btn-icon">🛸</span>
-          Order Tracker
+          Live Cake Tracker
         </button>
       </div>
 
@@ -286,6 +288,7 @@ export default function CreatorHub() {
                     layers={preset.spec.layers} 
                     flavor={preset.spec.layers[0].flavor} 
                     category="signature" 
+                    spec={preset.spec}
                   />
                   <div className="hub-preview-overlay">
                     <span className="spec-label">
@@ -354,7 +357,7 @@ export default function CreatorHub() {
                     <p className="order-specs">{order.specs}</p>
                   </div>
                   <div className="order-meta">
-                    <span className="order-price">${order.price}</span>
+                    <span className="order-price">{formatPrice(order.price)}</span>
                     <span className="order-date">{order.date}</span>
                   </div>
                 </div>
@@ -369,10 +372,10 @@ export default function CreatorHub() {
                   </div>
                   <div className="progress-steps">
                     {[
-                      { label: "Baking Sponge", icon: "🍰" },
-                      { label: "Chilling & Frosting", icon: "❄️" },
-                      { label: "Adding Toppings", icon: "✍️" },
-                      { label: "Out for Delivery", icon: "🚚" },
+                      { label: "Baking Cake Base", icon: "🍰" },
+                      { label: "Layering & Frosting", icon: "❄️" },
+                      { label: "Decorating & Detailing", icon: "✍️" },
+                      { label: "Dispatched & Delivering", icon: "🚚" },
                     ].map((step, idx) => {
                       const isActive = idx <= order.step;
                       const isCurrent = idx === order.step;
