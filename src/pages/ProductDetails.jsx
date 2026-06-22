@@ -72,6 +72,10 @@ function ProductDetails() {
               <span className="spec-label">{t("flavors")}</span>
               <span className="spec-value">{flavors.join(", ")}</span>
             </div>
+            <div className="spec-item">
+              <span className="spec-label">Weight</span>
+              <span className="spec-value">{product.weight ? `${product.weight} lbs` : `${layers * 2} lbs`}</span>
+            </div>
           </div>
 
           {/* Price and Add to Cart */}

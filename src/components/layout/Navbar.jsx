@@ -65,17 +65,6 @@ function Navbar() {
             ))}
           </select>
 
-          <select 
-            value={currency} 
-            onChange={(e) => setCurrency(e.target.value)}
-            className="hud-select"
-            title={t("currency")}
-          >
-            {supportedCurrencies.map(c => (
-              <option key={c.code} value={c.code}>{c.code} ({c.symbol})</option>
-            ))}
-          </select>
-
           <button 
             className="hud-theme-toggle" 
             onClick={toggleTheme}

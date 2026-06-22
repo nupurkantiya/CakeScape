@@ -27,7 +27,12 @@ function ProductCard({ product }) {
 
       {/* Product info */}
       <div className="product-info">
-        <span className="product-category">{category}</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+          <span className="product-category">{category}</span>
+          <span style={{ fontSize: '0.75rem', color: 'var(--color-neon-pink)', fontWeight: 600, fontFamily: 'monospace' }}>
+            {product.weight ? `${product.weight} lbs` : `${layers * 2} lbs`}
+          </span>
+        </div>
         <h3 className="product-name">{name}</h3>
         <p className="product-description">{description}</p>
         <div className="product-footer">

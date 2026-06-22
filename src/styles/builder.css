@@ -1404,3 +1404,27 @@
   }
 }
 
+/* ── Light Theme Overrides ─────────────────────────────────────── */
+.light-theme {
+  --bg-sidebar: rgba(255, 255, 255, 0.85);
+  --border-light: rgba(0, 0, 0, 0.08);
+  --border-active: rgba(0, 0, 0, 0.25);
+  --text-primary: #1d1d1f;
+  --text-secondary: rgba(0, 0, 0, 0.65);
+  --text-muted: rgba(0, 0, 0, 0.45);
+}
+
+.light-theme .builder-page {
+  background-color: #f5f5f7 !important;
+}
+
+.light-theme .canvas-btn {
+  background: rgba(0, 0, 0, 0.04) !important;
+  color: #1d1d1f !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+.light-theme .canvas-btn:hover {
+  background: rgba(0, 0, 0, 0.08) !important;
+}
+

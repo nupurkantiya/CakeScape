@@ -13,6 +13,7 @@ export const products = [
     category: "signature",
     flavors: ["vanilla"],
     layers: 3,
+    weight: 6.0,
     bestseller: true,
   },
   {
@@ -24,6 +25,7 @@ export const products = [
     category: "signature",
     flavors: ["red velvet", "chocolate"],
     layers: 2,
+    weight: 4.0,
     bestseller: true,
   },
   {
@@ -35,6 +37,7 @@ export const products = [
     category: "signature",
     flavors: ["chocolate"],
     layers: 3,
+    weight: 6.0,
     bestseller: false,
   },
   {
@@ -46,6 +49,7 @@ export const products = [
     category: "classic",
     flavors: ["lemon"],
     layers: 2,
+    weight: 4.0,
     bestseller: false,
   },
   {
@@ -57,6 +61,7 @@ export const products = [
     category: "birthday",
     flavors: ["vanilla"],
     layers: 2,
+    weight: 4.0,
     bestseller: true,
   },
   {
@@ -68,6 +73,7 @@ export const products = [
     category: "classic",
     flavors: ["strawberry"],
     layers: 2,
+    weight: 4.0,
     bestseller: false,
   },
   {
@@ -79,6 +85,7 @@ export const products = [
     category: "classic",
     flavors: ["carrot"],
     layers: 3,
+    weight: 6.0,
     bestseller: false,
   },
   {
@@ -90,6 +97,7 @@ export const products = [
     category: "wedding",
     flavors: ["vanilla", "almond"],
     layers: 4,
+    weight: 10.0,
     bestseller: false,
   },
   {
@@ -101,6 +109,7 @@ export const products = [
     category: "cupcakes",
     flavors: ["vanilla", "chocolate", "strawberry"],
     layers: 1,
+    weight: 1.5,
     bestseller: true,
   },
   {
@@ -112,6 +121,7 @@ export const products = [
     category: "signature",
     flavors: ["mixed berry"],
     layers: 1,
+    weight: 2.0,
     bestseller: false,
   },
 ]

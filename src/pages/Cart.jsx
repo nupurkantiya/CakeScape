@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom"
 import { useCart } from "../context/CartContext"
 import { useLocale } from "../context/LocaleContext"
@@ -8,17 +9,17 @@ import CakeVisualPreview from "../components/ui/CakeVisualPreview"
 // ================================
 
 function Cart() {
-  const { 
-    items,          
-    totalItems,     
-    totalPrice,     
-    updateQuantity, 
-    removeItem,     
-    clearCart       
+  const {
+    items,
+    totalItems,
+    totalPrice,
+    updateQuantity,
+    removeItem,
+    clearCart
   } = useCart()
 
   const { formatPrice, t } = useLocale()
-  
+
   const handleIncrease = (productId, currentQuantity) => {
     updateQuantity(productId, currentQuantity + 1)
   }
@@ -45,21 +46,21 @@ function Cart() {
   return (
     <div className="cart-page">
       <h1 className="cart-title">{t("yourCart")}</h1>
-      
+
       {/* -------- Cart Layout: Items + Summary -------- */}
       <div className="cart-layout">
-        
+
         {/* -------- LEFT: Cart Items List -------- */}
         <div className="cart-items">
           {items.map(({ product, quantity }) => (
             <div key={product.id} className="cart-item">
-              
+
               {/* Product Image */}
               <div className="cart-item-image">
                 {product.customImage ? (
-                  <img 
-                    src={product.customImage} 
-                    alt={product.name} 
+                  <img
+                    src={product.customImage}
+                    alt={product.name}
                     className="cart-item-custom-image"
                     style={{
                       width: "100%",
@@ -70,26 +71,29 @@ function Cart() {
                     }}
                   />
                 ) : (
-                  <CakeVisualPreview 
-                    layers={product.spec?.layers || product.layers || 3} 
-                    flavor={product.flavor || (product.flavors && product.flavors[0]) || "vanilla"} 
-                    category={product.category || "signature"} 
+                  <CakeVisualPreview
+                    layers={product.spec?.layers || product.layers || 3}
+                    flavor={product.flavor || (product.flavors && product.flavors[0]) || "vanilla"}
+                    category={product.category || "signature"}
                     spec={product.spec}
                   />
                 )}
               </div>
-              
+
               {/* Product Info */}
               <div className="cart-item-info">
                 <Link to={`/product/${product.id}`} className="cart-item-name">
                   {product.name}
                 </Link>
-                <p className="cart-item-price">{formatPrice(product.price)} {t("each")}</p>
+                <div style={{ fontSize: '0.8rem', color: 'var(--color-neon-pink)', marginTop: '4px', fontFamily: 'monospace' }}>
+                  {product.weight ? `${product.weight} lbs` : `${(product.layers || 2) * 2} lbs`}
+                </div>
+                <p className="cart-item-price" style={{ marginTop: '4px' }}>{formatPrice(product.price)} {t("each")}</p>
               </div>
-              
+
               {/* Quantity Controls */}
               <div className="cart-item-quantity">
-                <button 
+                <button
                   className="quantity-btn"
                   onClick={() => handleDecrease(product.id, quantity)}
                   aria-label="Decrease quantity"
@@ -97,7 +101,7 @@ function Cart() {
                   −
                 </button>
                 <span className="quantity-value">{quantity}</span>
-                <button 
+                <button
                   className="quantity-btn"
                   onClick={() => handleIncrease(product.id, quantity)}
                   aria-label="Increase quantity"
@@ -105,14 +109,14 @@ function Cart() {
                   +
                 </button>
               </div>
-              
+
               {/* Item Subtotal */}
               <div className="cart-item-subtotal">
                 {formatPrice(product.price * quantity)}
               </div>
-              
+
               {/* Remove Button */}
-              <button 
+              <button
                 className="cart-item-remove"
                 onClick={() => removeItem(product.id)}
                 aria-label={`Remove ${product.name} from cart`}
@@ -122,38 +126,38 @@ function Cart() {
             </div>
           ))}
         </div>
-        
+
         {/* -------- RIGHT: Cart Summary -------- */}
         <div className="cart-summary">
           <h2 className="cart-summary-title">{t("orderSummary")}</h2>
-          
+
           <div className="cart-summary-row">
             <span>{t("items")} ({totalItems})</span>
             <span>{formatPrice(totalPrice)}</span>
           </div>
-          
+
           <div className="cart-summary-row">
             <span>{t("shipping")}</span>
             <span className="cart-free">{t("free")}</span>
           </div>
-          
+
           <div className="cart-summary-divider"></div>
-          
+
           <div className="cart-summary-row cart-summary-total">
             <span>{t("total")}</span>
             <span>{formatPrice(totalPrice)}</span>
           </div>
-          
+
           {/* Checkout Button */}
           <button className="cart-checkout-btn">
             {t("checkout")}
           </button>
-          
+
           {/* Clear Cart */}
           <button className="cart-clear-btn" onClick={clearCart}>
             {t("clearCart")}
           </button>
-          
+
           {/* Continue Shopping */}
           <Link to="/shop" className="cart-continue">
             ← {t("continueShopping")}

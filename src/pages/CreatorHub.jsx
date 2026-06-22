@@ -157,7 +157,7 @@ const TRACKED_ORDERS = [
     date: "June 19, 2026",
     eta: "Today, 6:00 PM",
     step: 3, // En Route
-    specs: "3 Layers, Chocolate frosting, chocolate flakes, personalized cream text",
+    specs: "3 Layers (6 lbs), Chocolate frosting, chocolate flakes, personalized cream text",
   },
   {
     id: "LAB-8043",
@@ -166,7 +166,7 @@ const TRACKED_ORDERS = [
     date: "June 18, 2026",
     eta: "Tomorrow, 2:00 PM",
     step: 2, // Decorating
-    specs: "3 Layers, Vanilla, full sprinkles, neon pink cream text",
+    specs: "3 Layers (6 lbs), Vanilla, full sprinkles, neon pink cream text",
   },
   {
     id: "LAB-8044",
@@ -175,7 +175,7 @@ const TRACKED_ORDERS = [
     date: "June 18, 2026",
     eta: "June 21, 2026",
     step: 0, // Baking
-    specs: "2 Layers, Lemon, cyan piped cream text",
+    specs: "2 Layers (4 lbs), Lemon, cyan piped cream text",
   },
 ];
 
@@ -314,6 +314,9 @@ export default function CreatorHub() {
                   </div>
 
                   <div className="hub-tags">
+                    <span className="hub-tag" style={{ borderColor: 'var(--color-neon-pink)', color: 'var(--color-neon-pink)' }}>
+                      Weight: {preset.spec.layers.length * 2.0} lbs
+                    </span>
                     {preset.spec.customization.text && (
                       <span className="hub-tag">
                         Cream Text: "{preset.spec.customization.text}"
@@ -427,7 +430,7 @@ export default function CreatorHub() {
                 <div className="saved-card">
                   <div className="saved-card-info">
                     <h4>Pistachio Glaze (Custom)</h4>
-                    <p>2 Layers • Pistachio base • Cream Text "Pistachio"</p>
+                    <p>2 Layers (4 lbs) • Pistachio base • Cream Text "Pistachio"</p>
                   </div>
                   <button
                     className="saved-load-btn"
@@ -439,7 +442,7 @@ export default function CreatorHub() {
                 <div className="saved-card">
                   <div className="saved-card-info">
                     <h4>Velvet Raspberry Spark (Custom)</h4>
-                    <p>3 Layers • Raspberry Compote • Macaron Topping</p>
+                    <p>3 Layers (6 lbs) • Raspberry Compote • Macaron Topping</p>
                   </div>
                   <button
                     className="saved-load-btn"

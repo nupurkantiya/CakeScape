@@ -377,6 +377,7 @@ export default function DecorationPanel() {
       description: `${state.layers.length}-tier custom cake (${state.layers.map(l => l.flavor).join(', ')}) with personal customization.`,
       price: totalPrice,
       layers: state.layers.length,
+      weight: state.layers.length * 2.0,
       flavor: firstFlavor,
       category: 'custom',
       custom: true,

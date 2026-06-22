@@ -68,6 +68,11 @@ const TRANSLATIONS = {
     theme: "Theme",
     language: "Language",
     currency: "Currency",
+    orderSummary: "Order Summary",
+    items: "Items",
+    shipping: "Shipping",
+    clearCart: "Clear Cart",
+    continueShopping: "Continue Shopping",
   },
   hi: {
     home: "होम",
@@ -120,6 +125,11 @@ const TRANSLATIONS = {
     theme: "थीम",
     language: "भाषा",
     currency: "मुद्रा",
+    orderSummary: "ऑर्डर सारांश",
+    items: "सामग्री",
+    shipping: "शिपिंग",
+    clearCart: "कार्ट खाली करें",
+    continueShopping: "खरीदारी जारी रखें",
   },
   es: {
     home: "Inicio",
@@ -172,6 +182,11 @@ const TRANSLATIONS = {
     theme: "Tema",
     language: "Idioma",
     currency: "Moneda",
+    orderSummary: "Resumen de Pedido",
+    items: "Artículos",
+    shipping: "Envío",
+    clearCart: "Vaciar Carrito",
+    continueShopping: "Continuar Comprando",
   },
   fr: {
     home: "Accueil",
@@ -224,6 +239,11 @@ const TRANSLATIONS = {
     theme: "Thème",
     language: "Langue",
     currency: "Devise",
+    orderSummary: "Résumé de la Commande",
+    items: "Articles",
+    shipping: "Livraison",
+    clearCart: "Vider le Panier",
+    continueShopping: "Continuer mes Achats",
   }
 };
 
@@ -234,12 +254,24 @@ export function LocaleProvider({ children }) {
 
     // Detect user country/timezone
     try {
-      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      if (tz.toLowerCase().includes("kolkata") || tz.toLowerCase().includes("india")) {
-        return "en"; // Default to English in India as requested
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone.toLowerCase();
+      const offset = new Date().getTimezoneOffset();
+      const navLang = (navigator.language || "").toLowerCase();
+      
+      if (
+        tz.includes("kolkata") || 
+        tz.includes("calcutta") || 
+        tz.includes("india") || 
+        offset === -330 ||
+        navLang.includes("-in")
+      ) {
+        return "en-IN"; // Default to English (IN) - ₹ for Indian users
+      }
+      if (tz.includes("london") || tz.includes("gb") || navLang.includes("-gb")) {
+        return "en-GB"; // Default to English (UK) - £
       }
     } catch (e) {}
-    return "en";
+    return "en-US";
   });
 
   const [currency, setCurrency] = useState(() => {
@@ -248,14 +280,23 @@ export function LocaleProvider({ children }) {
 
     // Detect country/timezone for currency defaulting
     try {
-      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      if (tz.toLowerCase().includes("kolkata") || tz.toLowerCase().includes("india")) {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone.toLowerCase();
+      const offset = new Date().getTimezoneOffset();
+      const navLang = (navigator.language || "").toLowerCase();
+      
+      if (
+        tz.includes("kolkata") || 
+        tz.includes("calcutta") || 
+        tz.includes("india") || 
+        offset === -330 ||
+        navLang.includes("-in")
+      ) {
         return "INR";
       }
-      if (tz.toLowerCase().includes("europe")) {
+      if (tz.includes("europe")) {
         return "EUR";
       }
-      if (tz.toLowerCase().includes("london") || tz.toLowerCase().includes("gb")) {
+      if (tz.includes("london") || tz.includes("gb") || navLang.includes("-gb")) {
         return "GBP";
       }
     } catch (e) {}
@@ -269,6 +310,19 @@ export function LocaleProvider({ children }) {
 
   useEffect(() => {
     localStorage.setItem("cakescape-lang", language);
+    
+    // Dynamic currency assignment matching manual language/sub-locale choice
+    let targetCurrency = "USD";
+    if (language === "hi" || language === "en-IN") {
+      targetCurrency = "INR";
+    } else if (language === "es" || language === "fr") {
+      targetCurrency = "EUR";
+    } else if (language === "en-GB") {
+      targetCurrency = "GBP";
+    } else if (language === "en-US" || language === "en") {
+      targetCurrency = "USD";
+    }
+    setCurrency(targetCurrency);
   }, [language]);
 
   useEffect(() => {
@@ -287,9 +341,10 @@ export function LocaleProvider({ children }) {
     }
   }, [theme]);
 
-  // Translate a key
+  // Translate a key using base language identifier (e.g. "en-IN" -> "en")
   const t = (key) => {
-    const dict = TRANSLATIONS[language] || TRANSLATIONS.en;
+    const baseLang = language.split("-")[0];
+    const dict = TRANSLATIONS[baseLang] || TRANSLATIONS.en;
     return dict[key] || TRANSLATIONS.en[key] || key;
   };
 
@@ -322,10 +377,12 @@ export function LocaleProvider({ children }) {
       t,
       formatPrice,
       supportedLanguages: [
-        { code: "en", label: "English" },
-        { code: "hi", label: "हिन्दी" },
-        { code: "es", label: "Español" },
-        { code: "fr", label: "Français" }
+        { code: "en-US", label: "English (US) - $" },
+        { code: "en-IN", label: "English (IN) - ₹" },
+        { code: "en-GB", label: "English (UK) - £" },
+        { code: "hi", label: "हिन्दी - ₹" },
+        { code: "es", label: "Español - €" },
+        { code: "fr", label: "Français - €" }
       ],
       supportedCurrencies: [
         { code: "USD", symbol: "$" },
