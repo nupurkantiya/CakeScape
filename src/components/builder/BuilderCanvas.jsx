@@ -239,7 +239,7 @@ function lerp(a, b, t) { return a + (b - a) * t; }
 
 /* ── Component ─────────────────────────────────────────────── */
 const BuilderCanvas = () => {
-  const { state, decorCanvasRef } = useBuilder();
+  const { state, decorCanvasRef, webglCanvasRef } = useBuilder();
   const mountRef = useRef(null);
 
   const masterGroupRef = useRef(null);
@@ -281,10 +281,13 @@ const BuilderCanvas = () => {
     camera.position.set(0, 5, 14);
     camera.lookAt(0, 2, 0);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
+    if (webglCanvasRef) {
+      webglCanvasRef.current = renderer.domElement;
+    }
     if (container) {
       container.appendChild(renderer.domElement);
     }
