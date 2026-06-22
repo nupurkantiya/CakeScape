@@ -185,9 +185,10 @@ export function BuilderProvider({ children }) {
   const [state, dispatch] = useReducer(builderReducer, initialState);
   // Expose the stable canvas ref so components can draw on it without causing re-renders
   const decorCanvasRef = useRef(decorCanvas);
+  const webglCanvasRef = useRef(null);
 
   return (
-    <BuilderContext.Provider value={{ state, dispatch, decorCanvasRef }}>
+    <BuilderContext.Provider value={{ state, dispatch, decorCanvasRef, webglCanvasRef }}>
       {children}
     </BuilderContext.Provider>
   );
