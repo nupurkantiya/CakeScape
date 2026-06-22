@@ -345,7 +345,7 @@ const TABS = [
 ];
 
 export default function DecorationPanel() {
-  const { state, dispatch, decorCanvasRef } = useBuilder();
+  const { state, dispatch, decorCanvasRef, webglCanvasRef } = useBuilder();
   const { addItem } = useCart();
   const navigate = useNavigate();
   const { customization } = state;
@@ -361,6 +361,15 @@ export default function DecorationPanel() {
     const totalPrice = parseFloat((basePrice + layerPrice + toppingPrice).toFixed(2));
     
     const firstFlavor = state.layers[0]?.flavor || 'vanilla';
+
+    let customImage = null;
+    if (webglCanvasRef && webglCanvasRef.current) {
+      try {
+        customImage = webglCanvasRef.current.toDataURL('image/png');
+      } catch (err) {
+        console.error("Error capturing WebGL screenshot:", err);
+      }
+    }
     
     const cartProduct = {
       id: Math.floor(Math.random() * 100000) + 1000,
@@ -371,7 +380,8 @@ export default function DecorationPanel() {
       flavor: firstFlavor,
       category: 'custom',
       custom: true,
-      spec: { ...state }
+      customImage,
+      spec: JSON.parse(JSON.stringify(state))
     };
     
     addItem(cartProduct);
