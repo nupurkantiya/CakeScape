@@ -1,11 +1,23 @@
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useScrollProgress } from "../../hooks/useScrollProgress";
 import { useCart } from "../../context/CartContext";
+import { useLocale } from "../../context/LocaleContext";
 
 function Navbar() {
   const location = useLocation();
   const scrollProgress = useScrollProgress();
   const { totalItems } = useCart();
+  const { 
+    language, 
+    setLanguage, 
+    currency, 
+    setCurrency, 
+    theme, 
+    toggleTheme, 
+    t, 
+    supportedLanguages, 
+    supportedCurrencies 
+  } = useLocale();
 
   const isHome = location.pathname === "/";
   // Fade in navbar after scrolling past the initial screen intro start (2%)
@@ -22,23 +34,56 @@ function Navbar() {
 
         <div className="navbar-hud-links">
           <NavLink to="/" end className={({ isActive }) => isActive ? "active" : ""}>
-            Home
+            {t("home")}
           </NavLink>
           <NavLink to="/shop" className={({ isActive }) => isActive ? "active" : ""}>
-            Shop
+            {t("shop")}
           </NavLink>
           <NavLink to="/builder" className={({ isActive }) => isActive ? "active" : ""}>
-            Build Cake
+            {t("buildCake")}
           </NavLink>
           <NavLink to="/creator-hub" className={({ isActive }) => isActive ? "active" : ""}>
-            Creator Hub
+            {t("creatorHub")}
           </NavLink>
           <NavLink to="/cart" className={({ isActive }) => `navbar-hud-cart ${isActive ? "active" : ""}`}>
-            Cart
+            {t("cart")}
             {totalItems > 0 && (
               <span className="navbar-cart-badge animate-pulse">{totalItems}</span>
             )}
           </NavLink>
+        </div>
+
+        <div className="navbar-hud-controls">
+          <select 
+            value={language} 
+            onChange={(e) => setLanguage(e.target.value)}
+            className="hud-select"
+            title={t("language")}
+          >
+            {supportedLanguages.map(l => (
+              <option key={l.code} value={l.code}>{l.label}</option>
+            ))}
+          </select>
+
+          <select 
+            value={currency} 
+            onChange={(e) => setCurrency(e.target.value)}
+            className="hud-select"
+            title={t("currency")}
+          >
+            {supportedCurrencies.map(c => (
+              <option key={c.code} value={c.code}>{c.code} ({c.symbol})</option>
+            ))}
+          </select>
+
+          <button 
+            className="hud-theme-toggle" 
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            aria-label="Toggle Theme"
+          >
+            {theme === "dark" ? "☀️" : "🌙"}
+          </button>
         </div>
       </div>
     </nav>

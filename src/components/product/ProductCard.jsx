@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom"
 import CakeVisualPreview from "../ui/CakeVisualPreview"
+import { useLocale } from "../../context/LocaleContext"
 
 /**
  * ProductCard - Displays a single product in the shop grid
@@ -7,12 +8,13 @@ import CakeVisualPreview from "../ui/CakeVisualPreview"
  * @param {Object} product - Product data (id, name, price, image, etc.)
  */
 function ProductCard({ product }) {
-  const { id, name, description, price, image, category, bestseller, flavors, layers } = product
+  const { id, name, description, price, category, bestseller, flavors, layers } = product
+  const { formatPrice, t } = useLocale()
 
   return (
     <article className="product-card">
       {/* Bestseller badge */}
-      {bestseller && <span className="product-badge">Bestseller</span>}
+      {bestseller && <span className="product-badge">{t("bestseller")}</span>}
       
       {/* Product image */}
       <div className="product-image">
@@ -29,15 +31,14 @@ function ProductCard({ product }) {
         <h3 className="product-name">{name}</h3>
         <p className="product-description">{description}</p>
         <div className="product-footer">
-          <span className="product-price">${price.toFixed(2)}</span>
+          <span className="product-price">{formatPrice(price)}</span>
           <Link to={`/product/${id}`} className="product-btn">
-            View Details
+            {t("viewDetails")}
           </Link>
         </div>
       </div>
     </article>
   )
 }
-
 
 export default ProductCard
