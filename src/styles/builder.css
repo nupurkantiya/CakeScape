@@ -1428,3 +1428,75 @@
   background: rgba(0, 0, 0, 0.08) !important;
 }
 
+.light-theme .size-preset-btn,
+.light-theme .layer-frosting-btn,
+.light-theme .color-picker-label,
+.light-theme .dc-textarea,
+.light-theme .dc-font-btn,
+.light-theme .active-topping-chip,
+.light-theme .dc-upload-zone,
+.light-theme .decor-reset-btn {
+  background: rgba(0, 0, 0, 0.03) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  color: var(--text-secondary) !important;
+}
+
+.light-theme .size-preset-btn:hover,
+.light-theme .layer-frosting-btn:hover,
+.light-theme .color-picker-label:hover,
+.light-theme .dc-textarea:focus,
+.light-theme .dc-font-btn:hover,
+.light-theme .active-topping-chip:hover,
+.light-theme .dc-upload-zone:hover,
+.light-theme .decor-reset-btn:hover {
+  background: rgba(0, 0, 0, 0.06) !important;
+  color: var(--text-primary) !important;
+}
+
+.light-theme .size-preset-btn.active {
+  background: #1d1d1f !important;
+  border-color: #1d1d1f !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+}
+
+.light-theme .layer-frosting-btn.active {
+  background: rgba(0, 0, 0, 0.06) !important;
+  border-color: var(--color-neon-pink, #ff007f) !important;
+  color: var(--color-neon-pink, #ff007f) !important;
+}
+
+.light-theme .remove-topping-btn {
+  background: rgba(0, 0, 0, 0.06) !important;
+  color: var(--text-secondary) !important;
+}
+
+.light-theme .dc-mode-toggle {
+  background: rgba(0, 0, 0, 0.04) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+.light-theme .dc-mode-btn {
+  color: var(--text-secondary) !important;
+}
+
+.light-theme .dc-mode-btn:hover {
+  color: var(--text-primary) !important;
+  background: rgba(0, 0, 0, 0.04) !important;
+}
+
+.light-theme .dc-mode-btn.active {
+  background: linear-gradient(135deg, rgba(255, 107, 157, 0.15), rgba(155, 92, 255, 0.1)) !important;
+  color: var(--text-primary) !important;
+  border-color: rgba(255, 107, 157, 0.25) !important;
+}
+
+.light-theme .dc-slider {
+  background: rgba(0, 0, 0, 0.08) !important;
+}
+
+.light-theme .dc-char-count {
+  color: var(--text-muted) !important;
+}
+
+
