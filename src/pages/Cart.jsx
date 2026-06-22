@@ -70,7 +70,7 @@ function Cart() {
               {/* Product Image */}
               <div className="cart-item-image">
                 <CakeVisualPreview 
-                  layers={product.layers || 3} 
+                  layers={product.spec?.layers || product.layers || 3} 
                   flavor={product.flavor || (product.flavors && product.flavors[0]) || "vanilla"} 
                   category={product.category || "signature"} 
                 />
