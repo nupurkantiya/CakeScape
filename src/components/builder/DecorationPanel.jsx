@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useBuilder } from '../../context/BuilderContext';
+import { useCart } from '../../context/CartContext';
+import { useNavigate } from 'react-router-dom';
 
 /* ── Constants ───*/
 const FONTS = [
@@ -344,11 +346,37 @@ const TABS = [
 
 export default function DecorationPanel() {
   const { state, dispatch, decorCanvasRef } = useBuilder();
+  const { addItem } = useCart();
+  const navigate = useNavigate();
   const { customization } = state;
   const { activeTab } = customization;
 
   const topLayerSize = state.layers[state.layers.length - 1]?.size ?? 1.2;
   const setTab = (id) => dispatch({ type: 'UPDATE_CUSTOMIZATION', payload: { activeTab: id } });
+
+  const handleAddToCart = () => {
+    const basePrice = 29.99;
+    const layerPrice = state.layers.length * 10.00;
+    const toppingPrice = state.toppings.reduce((acc, t) => acc + t.count * 1.50, 0);
+    const totalPrice = parseFloat((basePrice + layerPrice + toppingPrice).toFixed(2));
+    
+    const firstFlavor = state.layers[0]?.flavor || 'vanilla';
+    
+    const cartProduct = {
+      id: Math.floor(Math.random() * 100000) + 1000,
+      name: `Custom Lab Creation`,
+      description: `${state.layers.length}-tier custom cake (${state.layers.map(l => l.flavor).join(', ')}) with personal customization.`,
+      price: totalPrice,
+      layers: state.layers.length,
+      flavor: firstFlavor,
+      category: 'custom',
+      custom: true,
+      spec: { ...state }
+    };
+    
+    addItem(cartProduct);
+    navigate('/cart');
+  };
 
   return (
     <div className="decor-panel">
@@ -383,6 +411,9 @@ export default function DecorationPanel() {
 
         {/* Footer */}
         <div className="decor-footer">
+          <button className="decor-add-cart-btn" onClick={handleAddToCart}>
+            Add Creation to Cart
+          </button>
           <button className="decor-reset-btn" onClick={() => dispatch({ type: 'RESET_CUSTOMIZATION' })}>
             Reset All Decoration
           </button>
